@@ -28,19 +28,18 @@ object CacheUpdaterActor {
 
 private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeeper) extends Actor {
   // Add the watcher
+  // TODO: Can we avoid registering the Watcher like this? Can we use the ZooKeeper methods to register the Watcher?
   zoo.register(new ZooKeeperWatcher)
   // Keep a set of watched nodes in order not to add more watches that we should
   val watchedNodes = new HashSet[String]
 
   override def receive(): Receive = {
     case wp @ ScakkaApiWatchUnderPath(path, promiseOpt) => {
-      println(wp)
       self ! Update(path, true)
       wp.success()
     }
     // Add a path entry to the cache
     case Add(path, data, updateChildren) => {
-      println(s"Add($path, $data, $updateChildren)")
       setWatchers(path)
       Try(zoo.getChildren(path, false).toSet) match {
         case Success(children) => {
@@ -54,7 +53,6 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     }
     // Update a path entry from the ZooKeeper
     case Update(path, recursive) => {
-      println(s"Update($path, $recursive)")
       Try(zoo.getData(path, false, null)) match {
         case Success(data) => self ! Add(path, data, recursive)
         case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path)
@@ -74,6 +72,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
         val stat = Option(zoo.exists(path, true))
         if (stat.nonEmpty) {
           zoo.getChildren(path, true)
+          zoo.getData(path, true, stat.get)
         }
       } match {
         case Success(_) => watchedNodes.add(path)
@@ -84,7 +83,6 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
 
   class ZooKeeperWatcher extends Watcher {
     def process(event: WatchedEvent): Unit = {
-      println("--------" + event.getType + " on " + event.getPath)
 
       self ! Unwatch(event.getPath)
 

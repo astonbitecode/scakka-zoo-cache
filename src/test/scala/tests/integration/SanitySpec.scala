@@ -18,6 +18,8 @@ import scala.concurrent.duration._
 import java.util.ArrayList
 import org.apache.zookeeper.data.ACL
 import scala.collection.JavaConversions._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 @RunWith(classOf[JUnitRunner])
 class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
@@ -72,5 +74,57 @@ class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
         instance.getChildren("/path3") must haveSize(1)
       }
     }
+
+    "synchronize the data of a znode from the ZooKeeper" >> {
+      val assertionData = "Steer the wheel"
+      zk.create("/path4", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      Await.result(instance.addPathToCache("/path4"), 30.seconds)
+      eventually {
+        instance.getChildren("/path4") must haveSize(0)
+      }
+
+      val stat = Option(zk.exists("/path4", false))
+      stat must not be (None)
+      zk.setData("/path4", assertionData.getBytes, stat.get.getVersion)
+
+      eventually {
+        val data = new String(instance.getData("/path4"))
+        data must beEqualTo(assertionData)
+      }
+    }
+
+    "synchronize the data of a znode from the ZooKeeper when other Threads are changing the same path" >> {
+      val assertionData1 = "Steer"
+      val assertionData2 = "the wheel"
+      zk.create("/path5", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      Await.result(instance.addPathToCache("/path5"), 30.seconds)
+      eventually {
+        instance.getChildren("/path5") must haveSize(0)
+      }
+
+      val stat = Option(zk.exists("/path5", false))
+      stat must not be (None)
+      zk.setData("/path5", "".getBytes, stat.get.getVersion)
+
+      // Spawn two Futures that are updating continuously
+      Future {
+        for (_ <- 0 until 1000) {
+          val stat = Option(zk.exists("/path5", false))
+          zk.setData("/path5", assertionData1.getBytes, stat.get.getVersion)
+        }
+      }
+      Future {
+        for (_ <- 0 until 1000) {
+          val stat = Option(zk.exists("/path5", false))
+          zk.setData("/path5", assertionData2.getBytes, stat.get.getVersion)
+        }
+      }
+
+      eventually {
+        val data = new String(instance.getData("/path5"))
+        data must beEqualTo(assertionData1) or beEqualTo(assertionData2)
+      }
+    }
+
   }
 }
