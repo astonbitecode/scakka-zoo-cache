@@ -12,20 +12,25 @@ class ScakkaZooCacheSpec extends mutable.Specification with Mockito {
 
   "Tests for the ScakkaZooCache ".txt
 
-  "Get Children on a non-existing node should fail" >> {
-    val instance = ScakkaZooCache(zk)
-    instance.getChildren("/") must throwA[KeeperException]
+  "Get Children on a non-existing node should " >> {
+    "fail" >> {
+      val instance = ScakkaZooCache(zk)
+      instance.getChildren("/") must throwA[KeeperException]
+    }
   }
 
-  "Get Children on an existing node with no children should return an empty List" >> {
-    val instance = ScakkaZooCache(zk)
-    instance.cache.put("/path", ScakkaZooCache.ZkNodeElement("v".getBytes))
-    instance.getChildren("/path") must haveSize(0)
+  "Get Children on a an existing node " >> {
+    "with no children should return an empty List" >> {
+      val instance = ScakkaZooCache(zk)
+      instance.cache.put("/path", ScakkaZooCache.ZkNodeElement("v".getBytes))
+      instance.getChildren("/path") must haveSize(0)
+    }
+
+    "with children should return a non empty List" >> {
+      val instance = ScakkaZooCache(zk)
+      instance.cache.put("/path", ScakkaZooCache.ZkNodeElement("v".getBytes, Set("child1", "child2")))
+      instance.getChildren("/path") must haveSize(2)
+    }
   }
 
-  "Get Children on an existing node with children should return a non empty List" >> {
-    val instance = ScakkaZooCache(zk)
-    instance.cache.put("/path", ScakkaZooCache.ZkNodeElement("v".getBytes, Set("child1", "child2")))
-    instance.getChildren("/path") must haveSize(2)
-  }
 }

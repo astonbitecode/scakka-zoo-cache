@@ -22,6 +22,8 @@ package messages {
 
   private[astonbitecode] case class Update(path: String, recursive: Boolean)
 
+  private[astonbitecode] case class SetWatcher(path: String)
+
   private[astonbitecode] case class Remove(path: String)
 
   private[astonbitecode] case class Unwatch(path: String)

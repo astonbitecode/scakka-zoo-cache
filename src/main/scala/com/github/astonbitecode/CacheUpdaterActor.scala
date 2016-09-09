@@ -7,11 +7,17 @@ import com.github.astonbitecode.messages._
 import org.apache.zookeeper.{
   ZooKeeper,
   Watcher,
-  WatchedEvent
+  WatchedEvent,
+  KeeperException
 }
 import scala.concurrent.Promise
 import org.apache.zookeeper.Watcher.Event
 import scala.collection.JavaConversions._
+import scala.util.{
+  Try,
+  Success,
+  Failure
+}
 
 object CacheUpdaterActor {
   def props(cache: Map[String, ZkNodeElement], zoo: ZooKeeper): Props = {
@@ -21,42 +27,64 @@ object CacheUpdaterActor {
 }
 
 private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeeper) extends Actor {
+  // Add the watcher
+  zoo.register(new ZooKeeperWatcher)
   // Keep a set of watched nodes in order not to add more watches that we should
   val watchedNodes = new HashSet[String]
 
   override def receive(): Receive = {
     case wp @ ScakkaApiWatchUnderPath(path, promiseOpt) => {
+      println(wp)
       self ! Update(path, true)
       wp.success()
     }
     // Add a path entry to the cache
     case Add(path, data, updateChildren) => {
-      // TODO: Improvement, setWatcher and getChildren in one call
-      setWatcher(path)
-      val children = zoo.getChildren(path, false).toSet
-      cache.put(path, ZkNodeElement(data, children))
-      if (updateChildren) {
-        children.foreach { child => self ! Update(s"$path/$child", updateChildren) }
+      println(s"Add($path, $data, $updateChildren)")
+      setWatchers(path)
+      Try(zoo.getChildren(path, false).toSet) match {
+        case Success(children) => {
+          cache.put(path, ZkNodeElement(data, children))
+          if (updateChildren) {
+            children.foreach { child => self ! Update(s"$path/$child", updateChildren) }
+          }
+        }
+        case Failure(error) => error.printStackTrace
       }
     }
+    // Update a path entry from the ZooKeeper
     case Update(path, recursive) => {
-      val data = zoo.getData(path, false, null)
-      self ! (Add(path, data, recursive))
+      println(s"Update($path, $recursive)")
+      Try(zoo.getData(path, false, null)) match {
+        case Success(data) => self ! Add(path, data, recursive)
+        case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path)
+        case Failure(error) => error.printStackTrace
+      }
     }
-    case _ => // Ignore
+    // Set a watcher
+    case SetWatcher(path) => setWatchers(path)
+    // Remove watch from a path
+    case Unwatch(path) => watchedNodes.remove(path)
+    case other: Any => println(s"UNHANDLED $other of type (${other.getClass})") // Ignore
   }
 
-  def setWatcher(path: String): Unit = {
+  def setWatchers(path: String): Unit = {
     if (!watchedNodes.contains(path)) {
-
-      //      vds.setChildrenNotification(path, watchHandler)
-      //      vds.setExistsNotification(path, watchHandler)
-      watchedNodes.add(path)
+      Try {
+        val stat = Option(zoo.exists(path, true))
+        if (stat.nonEmpty) {
+          zoo.getChildren(path, true)
+        }
+      } match {
+        case Success(_) => watchedNodes.add(path)
+        case Failure(error) => error.printStackTrace
+      }
     }
   }
 
   class ZooKeeperWatcher extends Watcher {
     def process(event: WatchedEvent): Unit = {
+      println("--------" + event.getType + " on " + event.getPath)
 
       self ! Unwatch(event.getPath)
 
