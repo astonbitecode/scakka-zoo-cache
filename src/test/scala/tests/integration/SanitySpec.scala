@@ -12,7 +12,7 @@ import org.apache.zookeeper.{
   CreateMode
 }
 import org.apache.curator.test.TestingServer
-import com.github.astonbitecode.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.util.ArrayList

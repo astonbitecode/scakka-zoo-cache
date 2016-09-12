@@ -1,15 +1,15 @@
-package com.github.astonbitecode.impl.scala
+package com.github.astonbitecode.zoocache.impl.scala
 
 import scala.collection.mutable.HashMap
 import org.apache.zookeeper.{ ZooKeeper, KeeperException }
 import org.apache.zookeeper.KeeperException.Code
 import akka.actor.ActorSystem
 import scala.concurrent.{ Future, Promise }
-import com.github.astonbitecode.messages._
+import com.github.astonbitecode.zoocache.messages._
 import akka.actor.actorRef2Scala
-import com.github.astonbitecode.CacheUpdaterActor
+import com.github.astonbitecode.zoocache.CacheUpdaterActor
 import org.apache.zookeeper.KeeperException
-import com.github.astonbitecode.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 
 case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends ScakkaZooCache {
   // Import from companion

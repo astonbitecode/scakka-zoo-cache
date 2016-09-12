@@ -1,10 +1,10 @@
-package com.github.astonbitecode.api.scala
+package com.github.astonbitecode.zoocache.api.scala
 
 import org.apache.zookeeper.KeeperException
 import scala.concurrent.Future
 import org.apache.zookeeper.ZooKeeper
 import akka.actor.ActorSystem
-import com.github.astonbitecode.impl.scala.ScakkaZooCacheImpl
+import com.github.astonbitecode.zoocache.impl.scala.ScakkaZooCacheImpl
 
 trait ScakkaZooCache {
   /**

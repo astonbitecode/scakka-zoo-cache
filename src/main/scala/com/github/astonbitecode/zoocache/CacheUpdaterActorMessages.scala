@@ -1,4 +1,4 @@
-package com.github.astonbitecode
+package com.github.astonbitecode.zoocache
 
 import scala.concurrent.Promise
 

@@ -1,4 +1,4 @@
-package com.github.astonbitecode
+package com.github.astonbitecode.zoocache
 
 /**
  * Does the needed actions (if needed) to notify the caller

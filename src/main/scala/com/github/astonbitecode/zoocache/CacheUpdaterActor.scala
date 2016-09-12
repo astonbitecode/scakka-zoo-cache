@@ -1,9 +1,9 @@
-package com.github.astonbitecode
+package com.github.astonbitecode.zoocache
 
 import akka.actor.{ Actor, Props }
 import scala.collection.mutable.{ Map, HashSet }
-import com.github.astonbitecode.api.scala.ScakkaZooCache.ZkNodeElement
-import com.github.astonbitecode.messages._
+import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache.ZkNodeElement
+import com.github.astonbitecode.zoocache.messages._
 import org.apache.zookeeper.{
   ZooKeeper,
   Watcher,

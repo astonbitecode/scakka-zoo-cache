@@ -24,14 +24,14 @@ Assuming that _zk_ is a `ZooKeeper` class instance, a `ScakkaZooCache` can be cr
 ####1.  Simple Initialization
 
 ```
-import com.github.astonbitecode.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 
 val zooCache = ScakkaZooCache(zk)
 ```
 ####2. Define an ActorSystem
 
 ```
-import com.github.astonbitecode.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 
 val actorSystem = ActorSystem("myActorSystem")
 val zooCache = ScakkaZooCache(zk, actorSystem)

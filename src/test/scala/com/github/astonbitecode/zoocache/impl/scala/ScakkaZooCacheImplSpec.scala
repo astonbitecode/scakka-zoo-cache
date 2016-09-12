@@ -1,4 +1,4 @@
-package com.github.astonbitecode.impl.scala
+package com.github.astonbitecode.zoocache.impl.scala
 
 import org.junit.runner.RunWith
 import org.specs2.mutable
@@ -6,7 +6,7 @@ import org.specs2.runner.JUnitRunner
 import org.specs2.mock.Mockito
 import org.apache.zookeeper.{ ZooKeeper, KeeperException }
 import akka.actor.ActorSystem
-import com.github.astonbitecode.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
