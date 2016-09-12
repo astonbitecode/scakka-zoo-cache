@@ -13,9 +13,9 @@ The paths and the subtrees to cache are defined by the library's API.
 * Built on top of the [ZooKeeper API](http://zookeeper.apache.org/doc/r3.4.9/api/)
 * Cache the whole ZooKeeper tree, or just parts of it
 * Data synchronization using Akka Actors
-* Access with Scala, or Akka messaging API
+* Access with Scala, Akka, or Java messaging API
 
-## Usage
+## Scala API Usage
 
 ### Initialization
 
@@ -24,14 +24,14 @@ Assuming that _zk_ is a `ZooKeeper` class instance, a `ScakkaZooCache` can be cr
 ####1.  Simple Initialization
 
 ```
-import com.github.astonbitecode.ScakkaZooCache
+import com.github.astonbitecode.api.scala.ScakkaZooCache
 
 val zooCache = ScakkaZooCache(zk)
 ```
 ####2. Define an ActorSystem
 
 ```
-import com.github.astonbitecode.ScakkaZooCache
+import com.github.astonbitecode.api.scala.ScakkaZooCache
 
 val actorSystem = ActorSystem("myActorSystem")
 val zooCache = ScakkaZooCache(zk, actorSystem)

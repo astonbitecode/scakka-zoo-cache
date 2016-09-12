@@ -25,7 +25,7 @@ import scala.concurrent.Future
 class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
   val server = new TestingServer(true)
   var zk: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
-  var instance: ScakkaZooCache = ScakkaZooCache.scala(zk)
+  var instance: ScakkaZooCache = ScakkaZooCache(zk)
 
   override def before() {
   }
