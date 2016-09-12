@@ -147,6 +147,11 @@ class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
         instance.getChildren("/path6/child1") must throwA[KeeperException]
         instance.getChildren("/path6/child1/child2") must throwA[KeeperException]
       }
+
+      // Create one more child
+      zk.create("/path6/child1/child2/child3", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      Thread.sleep(500)
+      instance.getChildren("/path6/child1/child2/child3") must throwA[KeeperException]
     }
   }
 }

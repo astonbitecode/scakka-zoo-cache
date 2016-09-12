@@ -71,6 +71,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     // Remove a path from the cache. Called either when the path was deleted from the ZooKeeper,
     // or when a API user does not need the path to be cached
     case Remove(path, notifOpt) => {
+      watchedNodes.remove(path)
       cache.remove(path) match {
         case Some(zkne) => {
           succeedNotifyable(notifOpt, path)
@@ -103,7 +104,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
 
   class ZooKeeperWatcher extends Watcher {
     def process(event: WatchedEvent): Unit = {
-      if (event.getPath != null && event.getType != null) {
+      if (event.getPath != null && event.getType != null && watchedNodes.contains(event.getPath)) {
         self ! Unwatch(event.getPath, None)
 
         event.getType match {
