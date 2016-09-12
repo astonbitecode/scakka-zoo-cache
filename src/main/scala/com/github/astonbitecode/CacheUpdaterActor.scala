@@ -18,6 +18,8 @@ import scala.util.{
   Success,
   Failure
 }
+import org.slf4j.LoggerFactory
+import com.typesafe.scalalogging.Logger
 
 object CacheUpdaterActor {
   def props(cache: Map[String, ZkNodeElement], zoo: ZooKeeper): Props = {
@@ -27,6 +29,7 @@ object CacheUpdaterActor {
 }
 
 private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeeper) extends Actor {
+  val logger = Logger(LoggerFactory.getLogger(this.getClass))
   // Add the watcher
   // TODO: Can we avoid registering the Watcher like this? Can we use the ZooKeeper methods to register the Watcher?
   zoo.register(new ZooKeeperWatcher)
@@ -48,7 +51,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
             children.foreach { child => self ! Update(s"$path/$child", updateChildren) }
           }
         }
-        case Failure(error) => error.printStackTrace
+        case Failure(error) => logger.error(s"Could not get children of $path while adding", error)
       }
     }
     // Update a path entry from the ZooKeeper
@@ -56,14 +59,14 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
       Try(zoo.getData(path, false, null)) match {
         case Success(data) => self ! Add(path, data, recursive)
         case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path)
-        case Failure(error) => error.printStackTrace
+        case Failure(error) => logger.error(s"Could not get data of $path while updating", error)
       }
     }
     // Set a watcher
     case SetWatcher(path) => setWatchers(path)
     // Remove watch from a path
     case Unwatch(path) => watchedNodes.remove(path)
-    case other: Any => println(s"UNHANDLED $other of type (${other.getClass})") // Ignore
+    case other: Any => logger.error(s"Cannot handle $other of type (${other.getClass})")
   }
 
   def setWatchers(path: String): Unit = {
@@ -76,31 +79,32 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
         }
       } match {
         case Success(_) => watchedNodes.add(path)
-        case Failure(error) => error.printStackTrace
+        case Failure(error) => logger.error(s"Could not add watchers for $path", error)
       }
     }
   }
 
   class ZooKeeperWatcher extends Watcher {
     def process(event: WatchedEvent): Unit = {
+      if (event.getPath != null && event.getType != null) {
+        self ! Unwatch(event.getPath)
 
-      self ! Unwatch(event.getPath)
-
-      event.getType match {
-        case Event.EventType.None => {
-          // ignore
-        }
-        case Event.EventType.NodeCreated => {
-          self ! Update(event.getPath, true)
-        }
-        case Event.EventType.NodeDeleted => {
-          self ! Remove(event.getPath)
-        }
-        case Event.EventType.NodeDataChanged => {
-          self ! Update(event.getPath, false)
-        }
-        case Event.EventType.NodeChildrenChanged => {
-          self ! Update(event.getPath, true)
+        event.getType match {
+          case Event.EventType.None => {
+            // ignore
+          }
+          case Event.EventType.NodeCreated => {
+            self ! Update(event.getPath, true)
+          }
+          case Event.EventType.NodeDeleted => {
+            self ! Remove(event.getPath)
+          }
+          case Event.EventType.NodeDataChanged => {
+            self ! Update(event.getPath, false)
+          }
+          case Event.EventType.NodeChildrenChanged => {
+            self ! Update(event.getPath, true)
+          }
         }
       }
     }
