@@ -4,10 +4,10 @@ import scala.concurrent.Promise
 
 package messages {
 
-  private[astonbitecode] case class ScakkaApiWatchUnderPath(path: String, promiseOpt: Option[Promise[Unit]] = None) extends MessageNotifyiable[Unit] {
-    override def success(u: Unit): Unit = {
+  private[astonbitecode] case class ScakkaApiWatchUnderPath(path: String, promiseOpt: Option[Promise[Unit]]) extends MessageNotifyiable {
+    override def success(): Unit = {
       if (promiseOpt.nonEmpty) {
-        promiseOpt.get.success(u)
+        promiseOpt.get.success()
       }
     }
 
@@ -16,15 +16,19 @@ package messages {
         promiseOpt.get.failure(error)
       }
     }
+
+    override def getPath(): String = {
+      path
+    }
   }
 
-  private[astonbitecode] case class Add(path: String, value: Array[Byte], updateChildren: Boolean)
+  private[astonbitecode] case class Add(path: String, value: Array[Byte], updateChildren: Boolean, notifyOpt: Option[MessageNotifyiable])
 
-  private[astonbitecode] case class Update(path: String, recursive: Boolean)
+  private[astonbitecode] case class Update(path: String, recursive: Boolean, notifyOpt: Option[MessageNotifyiable])
 
-  private[astonbitecode] case class SetWatcher(path: String)
+  private[astonbitecode] case class SetWatcher(path: String, notifyOpt: Option[MessageNotifyiable])
 
-  private[astonbitecode] case class Remove(path: String)
+  private[astonbitecode] case class Remove(path: String, notifyOpt: Option[MessageNotifyiable])
 
-  private[astonbitecode] case class Unwatch(path: String)
+  private[astonbitecode] case class Unwatch(path: String, notifyOpt: Option[MessageNotifyiable])
 }

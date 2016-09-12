@@ -41,7 +41,15 @@ case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends 
    */
   override def addPathToCache(path: String): Future[Unit] = {
     val p = Promise[Unit]
-    updater ! ScakkaApiWatchUnderPath(path, Some(p))
+
+    cache.get(path) match {
+      case Some(_) => updater ! ScakkaApiWatchUnderPath(path, Some(p))
+      case None => {
+        updater ! ScakkaApiWatchUnderPath(path, None)
+        p.success()
+      }
+    }
+
     p.future
   }
 }

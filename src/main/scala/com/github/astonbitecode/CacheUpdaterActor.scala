@@ -38,34 +38,37 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
 
   override def receive(): Receive = {
     case wp @ ScakkaApiWatchUnderPath(path, promiseOpt) => {
-      self ! Update(path, true)
-      wp.success()
+      self ! Update(path, true, Some(wp))
     }
     // Add a path entry to the cache
-    case Add(path, data, updateChildren) => {
+    case Add(path, data, updateChildren, notifOpt) => {
       setWatchers(path)
       Try(zoo.getChildren(path, false).toSet) match {
         case Success(children) => {
           cache.put(path, ZkNodeElement(data, children))
           if (updateChildren) {
-            children.foreach { child => self ! Update(s"$path/$child", updateChildren) }
+            children.foreach { child => self ! Update(s"$path/$child", updateChildren, notifOpt) }
           }
+          succeedNotifyable(notifOpt, path)
         }
-        case Failure(error) => logger.error(s"Could not get children of $path while adding", error)
+        case Failure(error) => {
+          logger.debug(s"Could not get children of $path while adding", error)
+          failNotifyable(notifOpt, error, path)
+        }
       }
     }
     // Update a path entry from the ZooKeeper
-    case Update(path, recursive) => {
+    case Update(path, recursive, notifOpt) => {
       Try(zoo.getData(path, false, null)) match {
-        case Success(data) => self ! Add(path, data, recursive)
-        case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path)
+        case Success(data) => self ! Add(path, data, recursive, notifOpt)
+        case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path, notifOpt)
         case Failure(error) => logger.error(s"Could not get data of $path while updating", error)
       }
     }
     // Set a watcher
-    case SetWatcher(path) => setWatchers(path)
+    case SetWatcher(path, _) => setWatchers(path)
     // Remove watch from a path
-    case Unwatch(path) => watchedNodes.remove(path)
+    case Unwatch(path, _) => watchedNodes.remove(path)
     case other: Any => logger.error(s"Cannot handle $other of type (${other.getClass})")
   }
 
@@ -87,26 +90,40 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
   class ZooKeeperWatcher extends Watcher {
     def process(event: WatchedEvent): Unit = {
       if (event.getPath != null && event.getType != null) {
-        self ! Unwatch(event.getPath)
+        self ! Unwatch(event.getPath, None)
 
         event.getType match {
           case Event.EventType.None => {
             // ignore
           }
           case Event.EventType.NodeCreated => {
-            self ! Update(event.getPath, true)
+            self ! Update(event.getPath, true, None)
           }
           case Event.EventType.NodeDeleted => {
-            self ! Remove(event.getPath)
+            self ! Remove(event.getPath, None)
           }
           case Event.EventType.NodeDataChanged => {
-            self ! Update(event.getPath, false)
+            self ! Update(event.getPath, false, None)
           }
           case Event.EventType.NodeChildrenChanged => {
-            self ! Update(event.getPath, true)
+            self ! Update(event.getPath, true, None)
           }
         }
       }
+    }
+  }
+
+  def succeedNotifyable(notifyableOpt: Option[MessageNotifyiable], path: String): Unit = {
+    notifyableOpt match {
+      case Some(notif) if (path == notif.getPath) => notif.success()
+      case other => //ignore
+    }
+  }
+
+  def failNotifyable(notifyableOpt: Option[MessageNotifyiable], error: Throwable, path: String): Unit = {
+    notifyableOpt match {
+      case Some(notif) if (path == notif.getPath) => notif.failure(error)
+      case other => //ignore
     }
   }
 }
