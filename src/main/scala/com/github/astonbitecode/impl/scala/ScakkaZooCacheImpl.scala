@@ -20,26 +20,31 @@ case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends 
   // WARNING: The handler is the only entity that mutates the cache.
   private val updater = actorSystem.actorOf(CacheUpdaterActor.props(cache, zoo))
 
-  /**
-   * Gets the children of the node of the given path
-   */
   @throws(classOf[KeeperException])
   override def getChildren(path: String): List[String] = {
     cache.get(path).fold(throw KeeperException.create(Code.NONODE))(_.children.toList)
   }
 
-  /**
-   * Gets the data of the node of the given path
-   */
   @throws(classOf[KeeperException])
   override def getData(path: String): Array[Byte] = {
     cache.get(path).fold(throw KeeperException.create(Code.NONODE))(_.data)
   }
 
-  /**
-   * Adds a path to the cache. The cache will be updating all the subtree under the defined path.
-   */
   override def addPathToCache(path: String): Future[Unit] = {
+    val p = Promise[Unit]
+
+    cache.get(path) match {
+      case Some(_) => updater ! ScakkaApiWatchUnderPath(path, Some(p))
+      case None => {
+        updater ! ScakkaApiWatchUnderPath(path, None)
+        p.success()
+      }
+    }
+
+    p.future
+  }
+
+  override def removePathFromCache(path: String): Future[Unit] = {
     val p = Promise[Unit]
 
     cache.get(path) match {

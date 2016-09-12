@@ -23,6 +23,11 @@ trait ScakkaZooCache {
    * Adds a path to the cache. The cache will be updating all the subtree under the defined path.
    */
   def addPathToCache(path: String): Future[Unit]
+
+  /**
+   * Removes a path from the cache. All the paths of the subtree under the defined path will also be removed from the cache and will stop being updated.
+   */
+  def removePathFromCache(path: String): Future[Unit]
 }
 
 object ScakkaZooCache {

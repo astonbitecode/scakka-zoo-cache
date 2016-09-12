@@ -37,7 +37,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
   val watchedNodes = new HashSet[String]
 
   override def receive(): Receive = {
-    case wp @ ScakkaApiWatchUnderPath(path, promiseOpt) => {
+    case wp @ ScakkaApiWatchUnderPath(path, _) => {
       self ! Update(path, true, Some(wp))
     }
     // Add a path entry to the cache
@@ -113,16 +113,16 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     }
   }
 
-  def succeedNotifyable(notifyableOpt: Option[MessageNotifyiable], path: String): Unit = {
+  def succeedNotifyable(notifyableOpt: Option[MessageNotifyable], path: String): Unit = {
     notifyableOpt match {
-      case Some(notif) if (path == notif.getPath) => notif.success()
+      case Some(notif) => notif.success(path)
       case other => //ignore
     }
   }
 
-  def failNotifyable(notifyableOpt: Option[MessageNotifyiable], error: Throwable, path: String): Unit = {
+  def failNotifyable(notifyableOpt: Option[MessageNotifyable], error: Throwable, path: String): Unit = {
     notifyableOpt match {
-      case Some(notif) if (path == notif.getPath) => notif.failure(error)
+      case Some(notif) => notif.failure(path, error)
       case other => //ignore
     }
   }

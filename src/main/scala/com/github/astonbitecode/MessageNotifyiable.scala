@@ -3,17 +3,13 @@ package com.github.astonbitecode
 /**
  * Does the needed actions (if needed) to notify the caller
  */
-private[astonbitecode] trait MessageNotifyiable {
+private[astonbitecode] trait MessageNotifyable {
   /**
    * Do things once the message handling was successful
    */
-  def success(): Unit
+  def success(path: String): Unit
   /**
    * Do things once the message handling encountered an error
    */
-  def failure(error: Throwable): Unit
-  /**
-   * Returns the path for which the Notifyable applies
-   */
-  def getPath(): String
+  def failure(path: String, error: Throwable): Unit
 }
