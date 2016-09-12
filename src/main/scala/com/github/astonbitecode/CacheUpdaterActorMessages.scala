@@ -18,16 +18,16 @@ package messages {
     }
   }
 
-  private[astonbitecode] case class ScakkaApiRemovePath(path: String, promiseOpt: Option[Promise[Unit]]) extends MessageNotifyable {
+  private[astonbitecode] case class ScakkaApiRemovePath(path: String, promise: Promise[Unit]) extends MessageNotifyable {
     override def success(accessedPath: String): Unit = {
-      if (promiseOpt.nonEmpty && path == accessedPath) {
-        promiseOpt.get.success()
+      if (path == accessedPath) {
+        promise.success()
       }
     }
 
     override def failure(accessedPath: String, error: Throwable): Unit = {
-      if (promiseOpt.nonEmpty && path == accessedPath) {
-        promiseOpt.get.failure(error)
+      if (path == accessedPath) {
+        promise.failure(error)
       }
     }
   }

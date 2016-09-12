@@ -48,11 +48,8 @@ case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends 
     val p = Promise[Unit]
 
     cache.get(path) match {
-      case Some(_) => updater ! ScakkaApiWatchUnderPath(path, Some(p))
-      case None => {
-        updater ! ScakkaApiWatchUnderPath(path, None)
-        p.success()
-      }
+      case Some(_) => updater ! ScakkaApiRemovePath(path, p)
+      case None => p.success()
     }
 
     p.future

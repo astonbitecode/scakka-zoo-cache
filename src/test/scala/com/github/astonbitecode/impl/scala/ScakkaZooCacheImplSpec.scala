@@ -7,6 +7,8 @@ import org.specs2.mock.Mockito
 import org.apache.zookeeper.{ ZooKeeper, KeeperException }
 import akka.actor.ActorSystem
 import com.github.astonbitecode.api.scala.ScakkaZooCache
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 @RunWith(classOf[JUnitRunner])
 class ScakkaZooCacheImplSpec extends mutable.Specification with Mockito {
@@ -60,4 +62,41 @@ class ScakkaZooCacheImplSpec extends mutable.Specification with Mockito {
     }
   }
 
+  "Add Path to Cache " >> {
+    "on a non-existing node should succeed" >> {
+      val instance = new ScakkaZooCacheImpl(zk, ActorSystem("ScakkaZooCache"))
+      eventually {
+        val res = Await.result(instance.addPathToCache("/non/existing/path"), 30.seconds)
+        res must beEqualTo(())
+      }
+    }
+
+    "on an existing node should succeed" >> {
+      val instance = new ScakkaZooCacheImpl(zk, ActorSystem("ScakkaZooCache"))
+      instance.cache.put("/path", ScakkaZooCache.ZkNodeElement("".getBytes))
+      eventually {
+        val res = Await.result(instance.addPathToCache("/path"), 30.seconds)
+        res must beEqualTo(())
+      }
+    }
+  }
+
+  "Remove Path from Cache " >> {
+    "on a non-existing node should succeed" >> {
+      val instance = new ScakkaZooCacheImpl(zk, ActorSystem("ScakkaZooCache"))
+      eventually {
+        val res = Await.result(instance.removePathFromCache("/non/existing/path"), 30.seconds)
+        res must beEqualTo(())
+      }
+    }
+
+    "on an existing node should succeed" >> {
+      val instance = new ScakkaZooCacheImpl(zk, ActorSystem("ScakkaZooCache"))
+      instance.cache.put("/path", ScakkaZooCache.ZkNodeElement("".getBytes))
+      eventually {
+        val res = Await.result(instance.removePathFromCache("/path"), 30.seconds)
+        res must beEqualTo(())
+      }
+    }
+  }
 }

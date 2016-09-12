@@ -124,5 +124,29 @@ class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
       }
     }
 
+    "remove a path from Synchronizing from the ZooKeeper" >> {
+      // Create the structure /path6/child1/child2
+      zk.create("/path6", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      Await.result(instance.addPathToCache("/path6"), 30.seconds)
+      eventually {
+        instance.getChildren("/path6") must haveSize(0)
+      }
+      zk.create("/path6/child1", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      eventually {
+        instance.getChildren("/path6") must haveSize(1)
+      }
+      zk.create("/path6/child1/child2", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      eventually {
+        instance.getChildren("/path6/child1") must haveSize(1)
+      }
+
+      Await.result(instance.removePathFromCache("/path6"), 30.seconds)
+      instance.getChildren("/path6") must throwA[KeeperException]
+
+      eventually {
+        instance.getChildren("/path6/child1") must throwA[KeeperException]
+        instance.getChildren("/path6/child1/child2") must throwA[KeeperException]
+      }
+    }
   }
 }

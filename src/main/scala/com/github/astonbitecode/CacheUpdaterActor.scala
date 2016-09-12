@@ -40,6 +40,9 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     case wp @ ScakkaApiWatchUnderPath(path, _) => {
       self ! Update(path, true, Some(wp))
     }
+    case rp @ ScakkaApiRemovePath(path, _) => {
+      self ! Remove(path, Some(rp))
+    }
     // Add a path entry to the cache
     case Add(path, data, updateChildren, notifOpt) => {
       setWatchers(path)
@@ -63,6 +66,17 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
         case Success(data) => self ! Add(path, data, recursive, notifOpt)
         case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path, notifOpt)
         case Failure(error) => logger.error(s"Could not get data of $path while updating", error)
+      }
+    }
+    // Remove a path from the cache. Called either when the path was deleted from the ZooKeeper,
+    // or when a API user does not need the path to be cached
+    case Remove(path, notifOpt) => {
+      cache.remove(path) match {
+        case Some(zkne) => {
+          succeedNotifyable(notifOpt, path)
+          zkne.children.foreach { child => self ! Remove(s"$path/$child", notifOpt) }
+        }
+        case None => // ignore
       }
     }
     // Set a watcher
