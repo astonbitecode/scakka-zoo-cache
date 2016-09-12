@@ -1,4 +1,4 @@
-package com.github.astonbitecode
+package com.github.astonbitecode.impl.scala
 
 import scala.collection.mutable.HashMap
 import org.apache.zookeeper.{ ZooKeeper, KeeperException }
@@ -6,8 +6,12 @@ import org.apache.zookeeper.KeeperException.Code
 import akka.actor.ActorSystem
 import scala.concurrent.{ Future, Promise }
 import com.github.astonbitecode.messages._
+import akka.actor.actorRef2Scala
+import com.github.astonbitecode.CacheUpdaterActor
+import org.apache.zookeeper.KeeperException
+import com.github.astonbitecode.api.scala.ScakkaZooCache
 
-case class ScakkaZooCache(zoo: ZooKeeper, actorSystem: ActorSystem) {
+case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends ScakkaZooCache {
   // Import from companion
   import ScakkaZooCache.ZkNodeElement
   // The cache
@@ -20,7 +24,7 @@ case class ScakkaZooCache(zoo: ZooKeeper, actorSystem: ActorSystem) {
    * Gets the children of the node of the given path
    */
   @throws(classOf[KeeperException])
-  def getChildren(path: String): List[String] = {
+  override def getChildren(path: String): List[String] = {
     cache.get(path).fold(throw KeeperException.create(Code.NONODE))(_.children.toList)
   }
 
@@ -28,25 +32,16 @@ case class ScakkaZooCache(zoo: ZooKeeper, actorSystem: ActorSystem) {
    * Gets the data of the node of the given path
    */
   @throws(classOf[KeeperException])
-  def getData(path: String): Array[Byte] = {
+  override def getData(path: String): Array[Byte] = {
     cache.get(path).fold(throw KeeperException.create(Code.NONODE))(_.data)
   }
 
   /**
    * Adds a path to the cache. The cache will be updating all the subtree under the defined path.
    */
-  def addPathToCache(path: String): Future[Unit] = {
+  override def addPathToCache(path: String): Future[Unit] = {
     val p = Promise[Unit]
     updater ! ScakkaApiWatchUnderPath(path, Some(p))
     p.future
-  }
-}
-
-object ScakkaZooCache {
-  private[astonbitecode] case class ZkNodeElement(data: Array[Byte], children: Set[String] = Set.empty)
-
-  def apply(zoo: ZooKeeper): ScakkaZooCache = {
-    val actorSystem = ActorSystem("ScakkaZooCache")
-    new ScakkaZooCache(zoo, actorSystem)
   }
 }

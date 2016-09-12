@@ -12,7 +12,7 @@ import org.apache.zookeeper.{
   CreateMode
 }
 import org.apache.curator.test.TestingServer
-import com.github.astonbitecode.ScakkaZooCache
+import com.github.astonbitecode.api.scala.ScakkaZooCache
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.util.ArrayList
@@ -25,7 +25,7 @@ import scala.concurrent.Future
 class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
   val server = new TestingServer(true)
   var zk: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
-  var instance: ScakkaZooCache = ScakkaZooCache(zk)
+  var instance: ScakkaZooCache = ScakkaZooCache.scala(zk)
 
   override def before() {
   }
