@@ -27,6 +27,7 @@ class SanitySpec extends mutable.Specification with AfterAll {
   val instance: ScakkaZooCache = ScakkaZooCache(zk)
 
   override def afterAll() {
+    Await.result(instance.stop(), 30.seconds)
     zk.close()
     server.close()
   }

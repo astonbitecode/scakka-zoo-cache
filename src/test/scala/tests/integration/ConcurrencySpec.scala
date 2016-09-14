@@ -31,6 +31,7 @@ class ConcurrencySpec extends mutable.Specification with AfterAll {
   val iterations = 100000
 
   override def afterAll() {
+    Await.result(instance.stop(), 30.seconds)
     zk1.close()
     zk2.close()
     zk3.close()

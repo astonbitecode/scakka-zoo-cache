@@ -46,6 +46,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     }
     case ScakkaApiShutdown => {
     	logger.info("Shutting down scakka-zoo-cache")
+    	watchedNodes.clear
     	cache.clear
       context.stop(self)
     }
