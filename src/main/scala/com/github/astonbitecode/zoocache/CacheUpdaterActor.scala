@@ -44,9 +44,14 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     case rp @ ScakkaApiRemovePath(path, _) => {
       self ! Remove(path, Some(rp))
     }
+    case ScakkaApiShutdown => {
+    	logger.info("Shutting down scakka-zoo-cache")
+    	cache.clear
+      context.stop(self)
+    }
     // Add a path entry to the cache
     case Add(path, data, updateChildren, notifOpt) => {
-    	setWatchers(path)
+      setWatchers(path)
       Try(zoo.getChildren(path, false).toSet) match {
         case Success(children) => {
           cache.put(path, ZkNodeElement(data, children))
@@ -95,7 +100,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
   def setWatchers(path: String): Unit = {
     if (!watchedNodes.contains(path)) {
       Try {
-    	  val stat = Option(zoo.exists(path, true))
+        val stat = Option(zoo.exists(path, true))
         if (stat.nonEmpty) {
           zoo.getChildren(path, true)
           zoo.getData(path, true, stat.get)
@@ -110,7 +115,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
 
   class ZooKeeperWatcher extends Watcher {
     def process(event: WatchedEvent): Unit = {
-  		logger.debug(s"Processing event type '${event.getType.name}' for path '${event.getPath}'")
+      logger.debug(s"Processing event type '${event.getType.name}' for path '${event.getPath}'")
       if (event.getPath != null && event.getType != null && watchedNodes.contains(event.getPath)) {
         self ! Unwatch(event.getPath, None)
 

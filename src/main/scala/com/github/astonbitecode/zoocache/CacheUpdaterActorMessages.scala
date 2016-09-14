@@ -32,6 +32,8 @@ package messages {
     }
   }
 
+  private[astonbitecode] case object ScakkaApiShutdown
+
   private[astonbitecode] case class Add(path: String, value: Array[Byte], updateChildren: Boolean, notifyOpt: Option[MessageNotifyable])
 
   private[astonbitecode] case class Update(path: String, recursive: Boolean, notifyOpt: Option[MessageNotifyable])

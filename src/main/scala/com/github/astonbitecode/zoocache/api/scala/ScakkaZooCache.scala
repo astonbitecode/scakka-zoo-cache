@@ -28,6 +28,11 @@ trait ScakkaZooCache {
    * Removes a path from the cache. All the paths of the subtree under the defined path will also be removed from the cache and will stop being updated.
    */
   def removePathFromCache(path: String): Future[Unit]
+
+  /**
+   * Stops and shuts down the cache resources
+   */
+  def stop(): Future[Unit]
 }
 
 object ScakkaZooCache {

@@ -1,14 +1,15 @@
 package com.github.astonbitecode.zoocache.impl.scala
 
 import scala.collection.mutable.HashMap
+import scala.concurrent.{ Future, Promise }
+import scala.concurrent.duration._
 import org.apache.zookeeper.{ ZooKeeper, KeeperException }
 import org.apache.zookeeper.KeeperException.Code
 import akka.actor.ActorSystem
-import scala.concurrent.{ Future, Promise }
-import com.github.astonbitecode.zoocache.messages._
 import akka.actor.actorRef2Scala
+import akka.pattern.gracefulStop
+import com.github.astonbitecode.zoocache.messages._
 import com.github.astonbitecode.zoocache.CacheUpdaterActor
-import org.apache.zookeeper.KeeperException
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 
 case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends ScakkaZooCache {
@@ -53,5 +54,10 @@ case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends 
     }
 
     p.future
+  }
+
+  override def stop(): Future[Unit] = {
+    implicit val ec = actorSystem.dispatcher
+    gracefulStop(updater, 10.seconds, ScakkaApiShutdown).map {_ => }
   }
 }
