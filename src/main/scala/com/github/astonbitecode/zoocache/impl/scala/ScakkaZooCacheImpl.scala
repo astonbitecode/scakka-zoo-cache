@@ -3,14 +3,14 @@ package com.github.astonbitecode.zoocache.impl.scala
 import scala.collection.mutable.HashMap
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration._
-import org.apache.zookeeper.{ ZooKeeper, KeeperException }
-import org.apache.zookeeper.KeeperException.Code
+import org.apache.zookeeper.ZooKeeper
 import akka.actor.ActorSystem
 import akka.actor.actorRef2Scala
 import akka.pattern.gracefulStop
 import com.github.astonbitecode.zoocache.messages._
 import com.github.astonbitecode.zoocache.CacheUpdaterActor
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 
 case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends ScakkaZooCache {
   // Import from companion
@@ -21,14 +21,14 @@ case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends 
   // WARNING: The handler is the only entity that mutates the cache.
   private val updater = actorSystem.actorOf(CacheUpdaterActor.props(cache, zoo))
 
-  @throws(classOf[KeeperException])
+  @throws(classOf[NotCachedException])
   override def getChildren(path: String): List[String] = {
-    cache.get(path).fold(throw KeeperException.create(Code.NONODE))(_.children.toList)
+    cache.get(path).fold(throw new NotCachedException(s"Path '$path' is not found in the cache while getting children"))(_.children.toList)
   }
 
-  @throws(classOf[KeeperException])
+  @throws(classOf[NotCachedException])
   override def getData(path: String): Array[Byte] = {
-    cache.get(path).fold(throw KeeperException.create(Code.NONODE))(_.data)
+    cache.get(path).fold(throw new NotCachedException(s"Path '$path' is not found in the cache while getting data"))(_.data)
   }
 
   override def addPathToCache(path: String): Future[Unit] = {

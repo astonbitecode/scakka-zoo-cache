@@ -4,9 +4,10 @@ import org.junit.runner.RunWith
 import org.specs2.mutable
 import org.specs2.runner.JUnitRunner
 import org.specs2.mock.Mockito
-import org.apache.zookeeper.{ ZooKeeper, KeeperException }
+import org.apache.zookeeper.ZooKeeper
 import akka.actor.ActorSystem
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
@@ -20,7 +21,7 @@ class ScakkaZooCacheImplSpec extends mutable.Specification with Mockito {
     "on a non-existing node should " >> {
       "fail" >> {
         val instance = new ScakkaZooCacheImpl(zk, ActorSystem("ScakkaZooCache1"))
-        instance.getChildren("/") must throwA[KeeperException]
+        instance.getChildren("/") must throwA[NotCachedException]
       }
     }
 
@@ -43,7 +44,7 @@ class ScakkaZooCacheImplSpec extends mutable.Specification with Mockito {
     "on a non-existing node should " >> {
       "fail" >> {
         val instance = new ScakkaZooCacheImpl(zk, ActorSystem("ScakkaZooCache4"))
-        instance.getData("/") must throwA[KeeperException]
+        instance.getData("/") must throwA[NotCachedException]
       }
     }
 
@@ -108,7 +109,7 @@ class ScakkaZooCacheImplSpec extends mutable.Specification with Mockito {
 
       val unit = Await.result(instance.stop(), 30.seconds)
       unit must beEqualTo(())
-      instance.getChildren("/") must throwA[KeeperException]
+      instance.getChildren("/") must throwA[NotCachedException]
     }
   }
 }

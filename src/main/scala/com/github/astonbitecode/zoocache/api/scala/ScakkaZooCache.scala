@@ -1,22 +1,22 @@
 package com.github.astonbitecode.zoocache.api.scala
 
-import org.apache.zookeeper.KeeperException
 import scala.concurrent.Future
 import org.apache.zookeeper.ZooKeeper
 import akka.actor.ActorSystem
 import com.github.astonbitecode.zoocache.impl.scala.ScakkaZooCacheImpl
+import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 
 trait ScakkaZooCache {
   /**
    * Gets the children of the node of the given path
    */
-  @throws(classOf[KeeperException])
+  @throws(classOf[NotCachedException])
   def getChildren(path: String): List[String]
 
   /**
    * Gets the data of the node of the given path
    */
-  @throws(classOf[KeeperException])
+  @throws(classOf[NotCachedException])
   def getData(path: String): Array[Byte]
 
   /**

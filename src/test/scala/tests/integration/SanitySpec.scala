@@ -5,12 +5,12 @@ import org.specs2.mutable
 import org.specs2.runner.JUnitRunner
 import org.apache.zookeeper.{
   ZooKeeper,
-  KeeperException,
   ZooDefs,
   CreateMode
 }
 import org.apache.curator.test.TestingServer
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
+import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.util.ArrayList
@@ -129,17 +129,17 @@ class SanitySpec extends mutable.Specification with AfterAll {
       }
 
       Await.result(instance.removePathFromCache("/path6"), 30.seconds)
-      instance.getChildren("/path6") must throwA[KeeperException]
+      instance.getChildren("/path6") must throwA[NotCachedException]
 
       eventually {
-        instance.getChildren("/path6/child1") must throwA[KeeperException]
-        instance.getChildren("/path6/child1/child2") must throwA[KeeperException]
+        instance.getChildren("/path6/child1") must throwA[NotCachedException]
+        instance.getChildren("/path6/child1/child2") must throwA[NotCachedException]
       }
 
       // Create one more child
       zk.create("/path6/child1/child2/child3", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
       Thread.sleep(500)
-      instance.getChildren("/path6/child1/child2/child3") must throwA[KeeperException]
+      instance.getChildren("/path6/child1/child2/child3") must throwA[NotCachedException]
     }
 
     "update itself when a node is deleted from the ZooKeeper" >> {
@@ -179,7 +179,7 @@ class SanitySpec extends mutable.Specification with AfterAll {
       stat2 must not be (None)
       zk.delete("/path8", stat2.get.getVersion)
       eventually(100, 100.millis) {
-        instance.getChildren("/path8") must throwA[KeeperException]
+        instance.getChildren("/path8") must throwA[NotCachedException]
       }
     }
   }

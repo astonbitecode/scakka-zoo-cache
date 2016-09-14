@@ -5,7 +5,6 @@ import org.specs2.mutable
 import org.specs2.runner.JUnitRunner
 import org.apache.zookeeper.{
   ZooKeeper,
-  KeeperException,
   ZooDefs,
   CreateMode
 }
