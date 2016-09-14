@@ -20,6 +20,7 @@ import scala.util.{
 }
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
+import org.apache.zookeeper.KeeperException.NoNodeException
 
 object CacheUpdaterActor {
   def props(cache: Map[String, ZkNodeElement], zoo: ZooKeeper): Props = {
@@ -45,7 +46,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     }
     // Add a path entry to the cache
     case Add(path, data, updateChildren, notifOpt) => {
-      setWatchers(path)
+    	setWatchers(path)
       Try(zoo.getChildren(path, false).toSet) match {
         case Success(children) => {
           cache.put(path, ZkNodeElement(data, children))
@@ -53,6 +54,10 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
             children.foreach { child => self ! Update(s"$path/$child", updateChildren, notifOpt) }
           }
           succeedNotifyable(notifOpt, path)
+        }
+        case Failure(error: NoNodeException) => {
+          failNotifyable(notifOpt, error, path)
+          self ! Remove(path, None)
         }
         case Failure(error) => {
           logger.debug(s"Could not get children of $path while adding", error)
@@ -65,7 +70,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
       Try(zoo.getData(path, false, null)) match {
         case Success(data) => self ! Add(path, data, recursive, notifOpt)
         case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path, notifOpt)
-        case Failure(error) => logger.error(s"Could not get data of $path while updating", error)
+        case Failure(error) => logger.debug(s"Could not get data of $path while updating", error)
       }
     }
     // Remove a path from the cache. Called either when the path was deleted from the ZooKeeper,
@@ -84,26 +89,28 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     case SetWatcher(path, _) => setWatchers(path)
     // Remove watch from a path
     case Unwatch(path, _) => watchedNodes.remove(path)
-    case other: Any => logger.error(s"Cannot handle $other of type (${other.getClass})")
+    case other: Any => logger.debug(s"Cannot handle $other of type (${other.getClass})")
   }
 
   def setWatchers(path: String): Unit = {
     if (!watchedNodes.contains(path)) {
       Try {
-        val stat = Option(zoo.exists(path, true))
+    	  val stat = Option(zoo.exists(path, true))
         if (stat.nonEmpty) {
           zoo.getChildren(path, true)
           zoo.getData(path, true, stat.get)
         }
       } match {
         case Success(_) => watchedNodes.add(path)
-        case Failure(error) => logger.error(s"Could not add watchers for $path", error)
+        case Failure(error: NoNodeException) => self ! Remove(path, None)
+        case Failure(error) => logger.debug(s"Could not add watchers for $path", error)
       }
     }
   }
 
   class ZooKeeperWatcher extends Watcher {
     def process(event: WatchedEvent): Unit = {
+  		logger.debug(s"Processing event type '${event.getType.name}' for path '${event.getPath}'")
       if (event.getPath != null && event.getType != null && watchedNodes.contains(event.getPath)) {
         self ! Unwatch(event.getPath, None)
 

@@ -2,7 +2,7 @@
 
 A library that caches [ZooKeeper](http://zookeeper.apache.org/) data.
 
-It is written in [Scala](http://www.scala-lang.org/) and the cache synchronization is done using [Akka](http://www.akka.io) (therefore the name _scakka_).
+It is written in [Scala](http://www.scala-lang.org/) and the cache synchronization is done using [Akka](http://www.akka.io).
 
 The library caches data using a [ZooKeeper](http://zookeeper.apache.org/doc/r3.4.9/api/index.html) instance, by specifying watches in the `znode`s that should be cached.
 

@@ -3,8 +3,6 @@ package tests.integration
 import org.junit.runner.RunWith
 import org.specs2.mutable
 import org.specs2.runner.JUnitRunner
-import org.specs2.mock.Mockito
-import org.specs2.specification.BeforeEach
 import org.apache.zookeeper.{
   ZooKeeper,
   KeeperException,
@@ -20,17 +18,18 @@ import org.apache.zookeeper.data.ACL
 import scala.collection.JavaConversions._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import org.specs2.specification.AfterAll
 
 @RunWith(classOf[JUnitRunner])
-class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
+class SanitySpec extends mutable.Specification with AfterAll {
   val server = new TestingServer(true)
-  var zk: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
-  var instance: ScakkaZooCache = ScakkaZooCache(zk)
+  val zk: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
+  val instance: ScakkaZooCache = ScakkaZooCache(zk)
 
-  override def before() {
+  override def afterAll() {
+    zk.close()
+    server.close()
   }
-
-  sequential
 
   "Integration test - Sanity ".txt
 
@@ -91,40 +90,28 @@ class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
       }
     }
 
-    "synchronize the data of a znode from the ZooKeeper when other Threads are changing the same path" >> {
-      val assertionData1 = "Steer"
-      val assertionData2 = "the wheel"
-      zk.create("/path5", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+    "synchronize the data of children of defined znodes" >> {
+      var data = ""
+      val assertionData = "Steer"
+      zk.create("/path5", data.getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
       Await.result(instance.addPathToCache("/path5"), 30.seconds)
       eventually {
         instance.getChildren("/path5") must haveSize(0)
       }
 
-      val stat = Option(zk.exists("/path5", false))
-      stat must not be (None)
-      zk.setData("/path5", "".getBytes, stat.get.getVersion)
+      zk.create("/path5/child1", data.getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      zk.create("/path5/child1/child2", data.getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
 
-      // Spawn two Futures that are updating continuously
-      Future {
-        for (_ <- 0 until 1000) {
-          val stat = Option(zk.exists("/path5", false))
-          zk.setData("/path5", assertionData1.getBytes, stat.get.getVersion)
-        }
-      }
-      Future {
-        for (_ <- 0 until 1000) {
-          val stat = Option(zk.exists("/path5", false))
-          zk.setData("/path5", assertionData2.getBytes, stat.get.getVersion)
-        }
-      }
+      val stat = Option(zk.exists("/path5/child1/child2", false))
+      zk.setData("/path5/child1/child2", assertionData.getBytes, stat.get.getVersion)
 
-      eventually {
-        val data = new String(instance.getData("/path5"))
-        data must beEqualTo(assertionData1) or beEqualTo(assertionData2)
+      eventually(100, 100.millis) {
+        data = new String(instance.getData("/path5/child1/child2"))
+        data must beEqualTo(assertionData)
       }
     }
 
-    "remove a path from Synchronizing from the ZooKeeper" >> {
+    "remove a path from synchronizing from the ZooKeeper" >> {
       // Create the structure /path6/child1/child2
       zk.create("/path6", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
       Await.result(instance.addPathToCache("/path6"), 30.seconds)
@@ -152,6 +139,47 @@ class SanitySpec extends mutable.Specification with Mockito with BeforeEach {
       zk.create("/path6/child1/child2/child3", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
       Thread.sleep(500)
       instance.getChildren("/path6/child1/child2/child3") must throwA[KeeperException]
+    }
+
+    "update itself when a node is deleted from the ZooKeeper" >> {
+      zk.create("/path7", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      Await.result(instance.addPathToCache("/path7"), 30.seconds)
+      eventually {
+        instance.getChildren("/path7") must haveSize(0)
+      }
+      zk.create("/path7/child1", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      eventually {
+        instance.getChildren("/path7") must haveSize(1)
+      }
+
+      val stat = Option(zk.exists("/path7/child1", false))
+      stat must not be (None)
+      zk.delete("/path7/child1", stat.get.getVersion)
+      eventually {
+        instance.getChildren("/path7") must haveSize(0)
+      }
+    }
+
+    "update itself when a parent of a watched node is deleted from the ZooKeeper" >> {
+      zk.create("/path8", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      Await.result(instance.addPathToCache("/path8"), 30.seconds)
+      eventually {
+        instance.getChildren("/path8") must haveSize(0)
+      }
+      zk.create("/path8/child1", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      eventually {
+        instance.getChildren("/path8") must haveSize(1)
+      }
+
+      val stat1 = Option(zk.exists("/path8/child1", false))
+      stat1 must not be (None)
+      zk.delete("/path8/child1", stat1.get.getVersion)
+      val stat2 = Option(zk.exists("/path8", false))
+      stat2 must not be (None)
+      zk.delete("/path8", stat2.get.getVersion)
+      eventually(100, 100.millis) {
+        instance.getChildren("/path8") must throwA[KeeperException]
+      }
     }
   }
 }

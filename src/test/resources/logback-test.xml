@@ -7,7 +7,7 @@
 			</Pattern>
 		</layout>
 	</appender>
-	<logger name="org.apache.zookeeper" level="error" additivity="false">
+	<logger name="org.apache.zookeeper" level="off" additivity="false">
 		<appender-ref ref="STDOUT" />
 	</logger>
 	<logger name="com.github.astonbitecode" level="debug" additivity="false">
