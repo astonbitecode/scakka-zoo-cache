@@ -1,4 +1,4 @@
-# scakka-zoo-cache
+# scakka-zoo-cache ![Build Status](https://travis-ci.org/astonbitecode/scakka-zoo-cache.svg?branch=master)
 
 A library that caches [ZooKeeper](http://zookeeper.apache.org/) data.
 
@@ -6,7 +6,7 @@ It is written in [Scala](http://www.scala-lang.org/) and the cache synchronizati
 
 The library caches data using a [ZooKeeper](http://zookeeper.apache.org/doc/r3.4.9/api/index.html) instance, by specifying watches in the `znode`s that should be cached.
 
-The paths and the subtrees to cache are defined by the library's API.
+The paths and the subtrees to cache are defined using the library's API.
 
 ## Features
 
@@ -17,18 +17,18 @@ The paths and the subtrees to cache are defined by the library's API.
 
 ## Scala API Usage
 
-### Initialization
+### Initialize the cache
 
-Assuming that _zk_ is a `ZooKeeper` class instance, a `ScakkaZooCache` can be created with any of the following ways:
+Assuming that _zk_ is a `ZooKeeper` class instance, a `ScakkaZooCache` can be created like following:
 
-####1.  Simple Initialization
+####1.  Using simple initialization
 
 ```
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 
 val zooCache = ScakkaZooCache(zk)
 ```
-####2. Define an ActorSystem
+####2. Defining an ActorSystem
 
 ```
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
