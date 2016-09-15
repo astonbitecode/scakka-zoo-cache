@@ -9,6 +9,7 @@ import akka.actor.ActorSystem
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 import com.github.astonbitecode.zoocache.CacheUpdaterActor.ZkNodeElement
+import com.github.astonbitecode.zoocache.Internals.implicits._
 import scala.concurrent.Await
 import scala.concurrent.duration._
 

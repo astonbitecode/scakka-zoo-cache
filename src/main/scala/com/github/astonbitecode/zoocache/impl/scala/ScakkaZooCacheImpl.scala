@@ -4,20 +4,20 @@ import scala.collection.mutable.HashMap
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration._
 import org.apache.zookeeper.ZooKeeper
-import akka.actor.ActorSystem
 import akka.actor.actorRef2Scala
 import akka.pattern.gracefulStop
 import com.github.astonbitecode.zoocache.messages._
 import com.github.astonbitecode.zoocache.CacheUpdaterActor
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
+import com.github.astonbitecode.zoocache.Internals.ActorCreatable
 
-case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends ScakkaZooCache {
+case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorCreatable: ActorCreatable) extends ScakkaZooCache {
   // The cache
   private[astonbitecode] val cache = HashMap.empty[String, CacheUpdaterActor.ZkNodeElement]
   // Create only one handler.
   // WARNING: The handler is the only entity that mutates the cache.
-  private val updater = actorSystem.actorOf(CacheUpdaterActor.props(cache, zoo))
+  private val updater = actorCreatable.actorOf(CacheUpdaterActor.props(cache, zoo))
 
   @throws(classOf[NotCachedException])
   override def getChildren(path: String): List[String] = {
@@ -55,7 +55,7 @@ case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends 
   }
 
   override def stop(): Future[Unit] = {
-    implicit val ec = actorSystem.dispatcher
+    implicit val ec = actorCreatable.dispatcher
     gracefulStop(updater, 10.seconds, ScakkaApiShutdown).map {_ => }
   }
 }
