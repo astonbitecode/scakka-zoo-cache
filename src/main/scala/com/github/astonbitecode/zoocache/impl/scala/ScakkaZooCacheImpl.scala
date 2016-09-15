@@ -13,10 +13,8 @@ import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 
 case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorSystem: ActorSystem) extends ScakkaZooCache {
-  // Import from companion
-  import ScakkaZooCache.ZkNodeElement
   // The cache
-  private[astonbitecode] val cache = HashMap.empty[String, ZkNodeElement]
+  private[astonbitecode] val cache = HashMap.empty[String, CacheUpdaterActor.ZkNodeElement]
   // Create only one handler.
   // WARNING: The handler is the only entity that mutates the cache.
   private val updater = actorSystem.actorOf(CacheUpdaterActor.props(cache, zoo))

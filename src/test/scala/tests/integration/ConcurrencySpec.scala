@@ -9,7 +9,6 @@ import org.apache.zookeeper.{
   CreateMode
 }
 import org.apache.curator.test.TestingServer
-import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.util.ArrayList
@@ -19,6 +18,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.collection.mutable.HashSet
 import org.specs2.specification.AfterAll
+import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 
 @RunWith(classOf[JUnitRunner])
 class ConcurrencySpec extends mutable.Specification with AfterAll {
@@ -26,7 +26,7 @@ class ConcurrencySpec extends mutable.Specification with AfterAll {
   val zk1: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
   val zk2: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
   val zk3: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
-  val instance: ScakkaZooCache = ScakkaZooCache(zk3)
+  val instance = ScakkaZooCacheFactory.scala(zk3)
   val iterations = 100000
 
   override def afterAll() {

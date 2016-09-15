@@ -9,8 +9,8 @@ import org.apache.zookeeper.{
   CreateMode
 }
 import org.apache.curator.test.TestingServer
-import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
+import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 import scala.concurrent.Await
 import scala.concurrent.duration._
 import java.util.ArrayList
@@ -24,7 +24,7 @@ import org.specs2.specification.AfterAll
 class SanitySpec extends mutable.Specification with AfterAll {
   val server = new TestingServer(true)
   val zk: ZooKeeper = new ZooKeeper(server.getConnectString, 1000, null)
-  val instance: ScakkaZooCache = ScakkaZooCache(zk)
+  val instance = ScakkaZooCacheFactory.scala(zk)
 
   override def afterAll() {
     Await.result(instance.stop(), 30.seconds)

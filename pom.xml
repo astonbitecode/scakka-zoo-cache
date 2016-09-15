@@ -136,6 +136,12 @@
 			<version>${curator.test.version}</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>com.typesafe.akka</groupId>
+			<artifactId>akka-testkit_2.11</artifactId>
+			<version>${akka.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 	<build>
 		<sourceDirectory>src/main/scala</sourceDirectory>

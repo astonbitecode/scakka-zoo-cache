@@ -2,7 +2,6 @@ package com.github.astonbitecode.zoocache
 
 import akka.actor.{ Actor, Props }
 import scala.collection.mutable.{ Map, HashSet }
-import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache.ZkNodeElement
 import com.github.astonbitecode.zoocache.messages._
 import org.apache.zookeeper.{
   ZooKeeper,
@@ -21,12 +20,14 @@ import scala.util.{
 import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 import org.apache.zookeeper.KeeperException.NoNodeException
+import com.github.astonbitecode.zoocache.CacheUpdaterActor.ZkNodeElement
 
 object CacheUpdaterActor {
   def props(cache: Map[String, ZkNodeElement], zoo: ZooKeeper): Props = {
     Props(new CacheUpdaterActor(cache, zoo))
   }
 
+  private[astonbitecode] case class ZkNodeElement(data: Array[Byte], children: Set[String] = Set.empty)
 }
 
 private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeeper) extends Actor {
@@ -95,7 +96,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     case SetWatcher(path, _) => setWatchers(path)
     // Remove watch from a path
     case Unwatch(path, _) => watchedNodes.remove(path)
-    case other: Any => logger.debug(s"Cannot handle $other of type (${other.getClass})")
+    case other: Any => logger.debug(s"${this.getClass} cannot handle $other of type (${other.getClass})")
   }
 
   def setWatchers(path: String): Unit = {

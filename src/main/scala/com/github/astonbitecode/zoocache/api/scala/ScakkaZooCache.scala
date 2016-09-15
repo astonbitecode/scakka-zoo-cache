@@ -34,16 +34,3 @@ trait ScakkaZooCache {
    */
   def stop(): Future[Unit]
 }
-
-object ScakkaZooCache {
-  private[astonbitecode] case class ZkNodeElement(data: Array[Byte], children: Set[String] = Set.empty)
-
-  def apply(zoo: ZooKeeper): ScakkaZooCache = {
-    val actorSystem = ActorSystem("ScakkaZooCache")
-    new ScakkaZooCacheImpl(zoo, actorSystem)
-  }
-
-  def apply(zoo: ZooKeeper, actorSystem: ActorSystem): ScakkaZooCache = {
-    new ScakkaZooCacheImpl(zoo, actorSystem)
-  }
-}
