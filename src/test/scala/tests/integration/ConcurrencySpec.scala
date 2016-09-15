@@ -53,23 +53,39 @@ class ConcurrencySpec extends mutable.Specification with AfterAll {
       Await.result(instance.addPathToCache("/this/is/a/path"), 30.seconds)
 
       // Update the data concurrently
+      var f1Spawned = false
+      var f1DoneAtLeastOnce = false
       Future {
+        f1Spawned = true
+        println("---Spawned future 1")
         for (i <- 0 to iterations) {
           try {
             val stat = Option(zk1.exists("/this/is/a/path", false))
             stat must not be (None)
             zk1.setData("/this/is/a/path", "User1".getBytes, stat.get.getVersion)
+            if(!f1DoneAtLeastOnce) {
+              println("Future 1 updated at least once")
+            }
+            f1DoneAtLeastOnce = true
           } catch {
             case error: Throwable => // ignore //println("error on User1 for " + i)
           }
         }
       }
+      var f2Spawned = false
+      var f2DoneAtLeastOnce = false
       Future {
+        f2Spawned = true
+        println("---Spawned future 2")
         for (i <- 0 to iterations) {
           try {
             val stat = Option(zk2.exists("/this/is/a/path", false))
             stat must not be (None)
             zk2.setData("/this/is/a/path", "User2".getBytes, stat.get.getVersion)
+            if(!f2DoneAtLeastOnce) {
+              println("Future 2 updated at least once")
+            }
+            f2DoneAtLeastOnce = true
           } catch {
             case error: Throwable => // ignore //println("error on User2 for " + i)
           }
@@ -80,8 +96,10 @@ class ConcurrencySpec extends mutable.Specification with AfterAll {
         instance.getChildren("/this/is/a/path") must haveSize(0)
       }
 
+      var f3Spawned = false
       var set = HashSet.empty[String]
       Future {
+        f3Spawned = true
         while(true) {
           val sizeBefore = set.size
           val data = instance.getData("/this/is/a/path")
@@ -93,6 +111,9 @@ class ConcurrencySpec extends mutable.Specification with AfterAll {
         }
       }
 
+      eventually {
+        f1Spawned & f2Spawned & f3Spawned must beEqualTo(true)
+      }
       eventually {
         set.size must beGreaterThanOrEqualTo(2)
       }
