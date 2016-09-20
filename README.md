@@ -14,6 +14,15 @@ The paths and the subtrees to cache are defined using the library's API.
 * Cache the whole ZooKeeper tree, or just parts of it
 * Data synchronization using Akka Actors
 * Access with Scala, Akka, or Java messaging API
+* Deployed in the Maven Central:
+
+```
+<dependency>
+  <groupId>com.github.astonbitecode</groupId>
+  <artifactId>scakka-zoo-cache</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
 
 ## Scala API Usage
 
