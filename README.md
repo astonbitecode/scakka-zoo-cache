@@ -8,6 +8,8 @@ The library caches data using a [ZooKeeper](http://zookeeper.apache.org/doc/r3.4
 
 The paths and the subtrees to cache are defined using the library's API.
 
+Whenever something changes in the ZooKeeper, watches are activated and the cache _eventually follows the change_ (add/remove nodes and data).
+
 ## Features
 
 * Built on top of the [ZooKeeper API](http://zookeeper.apache.org/doc/r3.4.9/api/)
