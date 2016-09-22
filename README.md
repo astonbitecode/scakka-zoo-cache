@@ -16,7 +16,7 @@ The paths and the subtrees to cache are defined using the library's API.
 * Access with Scala, Akka, or Java messaging API
 * Deployed in the Maven Central:
 
-```
+```xml
 <dependency>
   <groupId>com.github.astonbitecode</groupId>
   <artifactId>scakka-zoo-cache</artifactId>
@@ -32,14 +32,14 @@ Assuming that _zk_ is a `ZooKeeper` class instance, a `ScakkaZooCache` can be cr
 
 ####1.  Using simple initialization
 
-```
+```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 
 val zooCache = ScakkaZooCacheFactory.scala(zk)
 ```
 ####2. Defining an ActorSystem
 
-```
+```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 
 val actorSystem = ActorSystem("myActorSystem")
@@ -48,7 +48,7 @@ val zooCache = ScakkaZooCacheFactory.scala(zk, actorSystem)
 
 ####3. Creating from inside an Akka Actor, using the ActorContext
 
-```
+```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 
 // This is one Actor
@@ -73,7 +73,7 @@ Simply call the _addPathToCache_:
 
 ### Use the cache
 
-```
+```scala
 val children = zooCache.getChildren("/a/path")
 val data = zooCache.getData("/a/path")
 ```
@@ -82,7 +82,7 @@ val data = zooCache.getData("/a/path")
 
 ### Create the Actor that handles the Akka API messages
 
-```
+```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 
 // Create your ActorSystem
@@ -102,11 +102,13 @@ zooCacheActorRef ! GetChildren("/a/path")
 ```
 
 ### Add a path to the cache
-`zooCacheActorRef ! AddPathToCache("/a/path")`
+```scala
+zooCacheActorRef ! AddPathToCache("/a/path")
+```
 
 ### Use the cache
 
-```
+```scala
 zooCacheActorRef ! GetChildren("/a/path")
 zooCacheActorRef ! GetData("/a/path")
 ```
@@ -119,7 +121,7 @@ This message is sent by the Actor that handles the Akka API as a response to a r
 
 For example, when sending a `GetChildren` message, a response of `GetChildrenResponse` will be received:
 
-```
+```scala
 val askFuture = zooCacheActorRef ? GetChildren("/a/path")
 val children: GetChildrenResponse = Await.result(askFuture, 30 seconds)
 ```
@@ -128,7 +130,7 @@ val children: GetChildrenResponse = Await.result(askFuture, 30 seconds)
 
 Akka users are not obliged to use the Ask pattern. All the Akka messages offered by the ScakkaZooCache API have an Optional parameter that can be used for Request-Response correlation:
 
-```
+```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 import com.github.astonbitecode.zoocache.api.akka._
 
