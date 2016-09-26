@@ -47,5 +47,9 @@ class ScakkaZooCacheFactorySpec extends mutable.Specification with Mockito {
     "the Akka API " >> {
       ScakkaZooCacheFactory.props(ScakkaZooCacheFactory.scala(zk)) must not be null
     }
+
+    "the Java API " >> {
+      ScakkaZooCacheFactory.java(zk) must not be null
+    }
   }
 }

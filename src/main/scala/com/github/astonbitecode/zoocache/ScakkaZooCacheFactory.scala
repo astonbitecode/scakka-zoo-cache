@@ -11,6 +11,8 @@ import akka.actor.{
 }
 import org.apache.zookeeper.ZooKeeper
 import java.util.UUID
+import com.github.astonbitecode.zoocache.api.java.JScakkaZooCache
+import com.github.astonbitecode.zoocache.impl.java.ScakkaZooCacheJavaImpl
 
 object ScakkaZooCacheFactory {
 
@@ -47,5 +49,15 @@ object ScakkaZooCacheFactory {
    */
   def props(scakkaZooCache: ScakkaZooCache): Props = {
     ScakkaZooCacheActor.props(scakkaZooCache)
+  }
+
+  /**
+   * Creates a ScakkaZooCache that offers the Java API.
+   * The ActorSystem that is needed for creating the internal Actors, is being automatically created.
+   * @param zoo A ZooKeeper instance
+   */
+  def java(zoo: ZooKeeper): JScakkaZooCache = {
+    val scakkaCache = ScakkaZooCacheFactory.scala(zoo)
+    new ScakkaZooCacheJavaImpl(scakkaCache)
   }
 }
