@@ -6,7 +6,7 @@ It is written in [Scala](http://www.scala-lang.org/) and the cache synchronizati
 
 The library caches data using a [ZooKeeper](http://zookeeper.apache.org/doc/r3.4.9/api/index.html) instance, by specifying watches in the `znode`s that should be cached.
 
-The paths and the subtrees to cache are defined using the library's API.
+The paths to be cached are defined using the library's API. Subtrees and children of the defined paths to cache are _automatically cached_ as well.
 
 Whenever something changes in the ZooKeeper, watches are activated and the cache _eventually follows the change_ (add/remove nodes and data).
 
