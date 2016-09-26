@@ -15,7 +15,7 @@ Whenever something changes in the ZooKeeper, watches are activated and the cache
 * Built on top of the [ZooKeeper API](http://zookeeper.apache.org/doc/r3.4.9/api/)
 * Cache the whole ZooKeeper tree, or just parts of it
 * Data synchronization using Akka Actors
-* Access with Scala, Akka, or Java messaging API
+* Access with Scala, Akka, or Java APIs
 * Deployed in the Maven Central:
 
 ```xml
@@ -25,6 +25,31 @@ Whenever something changes in the ZooKeeper, watches are activated and the cache
   <version>0.1.0</version>
 </dependency>
 ```
+
+## API Usage
+
+The APIs of the ScakkaZooCache are offered for _Scala_, _Akka_ and _Java_, depending on how the cache is created (which `com.github.astonbitecode.zoocache.ScakkaZooCacheFactory` method will be used for the instantiation of the cache). 
+
+They all support the following:
+
+* Adding a path to the cache
+
+	After adding a path to the cache (eg. `/path/one`, all the ZooKeeper changes under the path `/path/one` will be monitored.
+	So, for example when getting the data of the path `/path/one/child1` the Data of the zNode will be returned from the cache.
+	Of course, this will happen __if and only if__ the path really exists in the ZooKeeper.
+	In the opposite case, the call will throw a `NotCachedException`.
+* Reading children of a path.
+
+* Getting data of a node in a path.
+
+* Removing a path from the cache
+
+	Stop monitoring a path and remove it from the cache.
+* Stopping the cache
+
+___Note:___ _Writing to the ZooKeeper is not done via the ScakkaZooCache. It should be done by using the ZooKeeper client itself. The cache is used_ ___only for reading operations___.
+
+---
 
 ## Scala API Usage
 
@@ -71,7 +96,7 @@ class MyActor extends Actor {
 
 Simply call the _addPathToCache_:
 
-`zooCache.addPathToCache("/cache/this/path")`
+`zooCache.addPathToCache("/path/one")`
 
 ### Use the cache
 
