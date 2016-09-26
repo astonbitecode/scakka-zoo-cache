@@ -37,18 +37,35 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
   zoo.register(new ZooKeeperWatcher)
   // Keep a set of watched nodes in order not to add more watches that we should
   val watchedNodes = new HashSet[String]
+  // Keep a set of Added Paths
+  val addedPaths = new HashSet[String]
 
   override def receive(): Receive = {
     case wp @ ScakkaApiWatchUnderPath(path, _) => {
-      self ! Update(path, true, Some(wp))
+      // The added paths should be updated only after successful invocation.
+      // This is why a Decorator is implemented
+      def onSuccessDecoratedAction(): Unit = {
+        addedPaths.add(path)
+      }
+      // Create and send the decorator
+      val wpDecorator = NotifyableDecorator(wp, onSuccessDecoratedAction)
+      self ! Update(path, true, Some(wpDecorator))
     }
     case rp @ ScakkaApiRemovePath(path, _) => {
-      self ! Remove(path, Some(rp))
+      // The added paths should be updated only after successful invocation.
+      // This is why a Decorator is implemented
+      def onSuccessDecoratedAction(): Unit = {
+        addedPaths.remove(path)
+      }
+      // Create and send the decorator
+      val rpDecorator = NotifyableDecorator(rp, onSuccessDecoratedAction)
+      self ! Remove(path, Some(rpDecorator))
     }
     case ScakkaApiShutdown => {
-    	logger.info("Shutting down scakka-zoo-cache")
-    	watchedNodes.clear
-    	cache.clear
+      logger.info("Shutting down scakka-zoo-cache")
+      addedPaths.clear
+      watchedNodes.clear
+      cache.clear
       context.stop(self)
     }
     // Add a path entry to the cache
@@ -84,6 +101,10 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     // or when a API user does not need the path to be cached
     case Remove(path, notifOpt) => {
       watchedNodes.remove(path)
+      // If the path to remove is one of the paths that the user has defined, set watchers in order to get the data when they appear
+      if (addedPaths.contains(path)) {
+        setWatchers(path)
+      }
       cache.remove(path) match {
         case Some(zkne) => {
           succeedNotifyable(notifOpt, path)
@@ -153,6 +174,27 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     notifyableOpt match {
       case Some(notif) => notif.failure(path, error)
       case other => //ignore
+    }
+  }
+
+  /**
+   * Decorates a MessageNotifyable in order to add specific functionality that only the CacheUpdaterActor knows
+   * @param notifyable: The MEssageNotifyable to decorate
+   * @param additionalActionOnSuccess A function () => Unit to be executed upon success
+   */
+  private[zoocache] case class NotifyableDecorator(notifyable: MessageNotifyable,
+      additionalActionOnSuccess: () => Unit) extends MessageNotifyable {
+
+    def success(path: String): Boolean = {
+      val b = notifyable.success(path)
+      if (b) {
+        additionalActionOnSuccess()
+      }
+      b
+    }
+
+    def failure(path: String, error: Throwable): Boolean = {
+      notifyable.failure(path, error)
     }
   }
 }

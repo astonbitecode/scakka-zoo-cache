@@ -5,29 +5,45 @@ import scala.concurrent.Promise
 package messages {
 
   private[astonbitecode] case class ScakkaApiWatchUnderPath(path: String, promiseOpt: Option[Promise[Unit]]) extends MessageNotifyable {
-    override def success(accessedPath: String): Unit = {
-      if (promiseOpt.nonEmpty && path == accessedPath) {
-        promiseOpt.get.success()
+    override def success(accessedPath: String): Boolean = {
+      if (path == accessedPath) {
+        if (promiseOpt.nonEmpty) {
+          promiseOpt.get.success()
+        }
+        true
+      } else {
+        false
       }
     }
 
-    override def failure(accessedPath: String, error: Throwable): Unit = {
-      if (promiseOpt.nonEmpty && path == accessedPath) {
-        promiseOpt.get.failure(error)
+    override def failure(accessedPath: String, error: Throwable): Boolean = {
+      if (path == accessedPath) {
+        if (promiseOpt.nonEmpty) {
+          promiseOpt.get.failure(error)
+        }
+        true
+      } else {
+        false
       }
     }
   }
 
   private[astonbitecode] case class ScakkaApiRemovePath(path: String, promise: Promise[Unit]) extends MessageNotifyable {
-    override def success(accessedPath: String): Unit = {
+    override def success(accessedPath: String): Boolean = {
       if (path == accessedPath) {
         promise.success()
+        true
+      } else {
+        false
       }
     }
 
-    override def failure(accessedPath: String, error: Throwable): Unit = {
+    override def failure(accessedPath: String, error: Throwable): Boolean = {
       if (path == accessedPath) {
         promise.failure(error)
+        true
+      } else {
+        false
       }
     }
   }

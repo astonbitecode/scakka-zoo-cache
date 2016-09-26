@@ -182,5 +182,29 @@ class SanitySpec extends mutable.Specification with AfterAll {
         instance.getChildren("/path8") must throwA[NotCachedException]
       }
     }
+
+    "handle the case when a path that is added to the cache gets later deleted from the ZooKeeper and then it is recreated" >> {
+      zk.create("/path9", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      // Add the path to the cache
+      Await.result(instance.addPathToCache("/path9"), 30.seconds)
+      eventually {
+        instance.getChildren("/path9") must haveSize(0)
+      }
+
+      // Delete the added-to-cache path from the ZooKeeper, without calling the removePathFromCache for it
+      val stat = Option(zk.exists("/path9", false))
+      stat must not be (None)
+      zk.delete("/path9", stat.get.getVersion)
+
+      eventually {
+        instance.getChildren("/path9") must throwA[NotCachedException]
+      }
+      // Add the path to the ZooKeeper again
+      zk.create("/path9", "".getBytes, ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT)
+      // Assert the existence in the cache
+      eventually {
+        instance.getChildren("/path9") must haveSize(0)
+      }
+    }
   }
 }
