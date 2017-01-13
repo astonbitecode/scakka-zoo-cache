@@ -25,7 +25,7 @@ object ScakkaZooCacheFactory {
    * @return A ScakkaZooCache instance
    */
   def scala(zoo: ZooKeeper): ScakkaZooCache = {
-    val actorSystem = ActorSystem("ScakkaZooCache_" + UUID.randomUUID().toString())
+    val actorSystem = ActorSystem("ScakkaZooCache" + UUID.randomUUID().toString().replace("-", ""))
     new ScakkaZooCacheImpl(new ZookeeperInstanceManager(zoo), actorSystem)
   }
 
@@ -36,7 +36,7 @@ object ScakkaZooCacheFactory {
    * @return A ScakkaZooCache instance
    */
   def scala(zookeeperManager: ZookeeperManager): ScakkaZooCache = {
-    val actorSystem = ActorSystem("ScakkaZooCache_" + UUID.randomUUID().toString())
+    val actorSystem = ActorSystem("ScakkaZooCache" + UUID.randomUUID().toString().replace("-", ""))
     new ScakkaZooCacheImpl(zookeeperManager, actorSystem)
   }
 
