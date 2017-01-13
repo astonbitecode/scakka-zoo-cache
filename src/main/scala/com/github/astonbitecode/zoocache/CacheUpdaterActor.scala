@@ -21,20 +21,20 @@ import org.slf4j.LoggerFactory
 import com.typesafe.scalalogging.Logger
 import org.apache.zookeeper.KeeperException.NoNodeException
 import com.github.astonbitecode.zoocache.CacheUpdaterActor.ZkNodeElement
+import com.github.astonbitecode.zoocache.zk.ZookeeperManager
 
 object CacheUpdaterActor {
-  def props(cache: Map[String, ZkNodeElement], zoo: ZooKeeper): Props = {
+  def props(cache: Map[String, ZkNodeElement], zoo: ZookeeperManager): Props = {
     Props(new CacheUpdaterActor(cache, zoo))
   }
 
   private[astonbitecode] case class ZkNodeElement(data: Array[Byte], children: Set[String] = Set.empty)
 }
 
-private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeeper) extends Actor {
+private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZookeeperManager) extends Actor {
   val logger = Logger(LoggerFactory.getLogger(this.getClass))
   // Add the watcher
-  // TODO: Can we avoid registering the Watcher like this? Can we use the ZooKeeper methods to register the Watcher?
-  zoo.register(new ZooKeeperWatcher)
+  zoo.registerWatcher(new ZooKeeperWatcher)
   // Keep a set of watched nodes in order not to add more watches that we should
   val watchedNodes = new HashSet[String]
   // Keep a set of Added Paths
@@ -71,7 +71,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     // Add a path entry to the cache
     case Add(path, data, updateChildren, notifOpt) => {
       setWatchers(path)
-      Try(zoo.getChildren(path, false).toSet) match {
+      Try(zoo.getChildren(path)) match {
         case Success(children) => {
           cache.put(path, ZkNodeElement(data, children))
           if (updateChildren) {
@@ -91,7 +91,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
     }
     // Update a path entry from the ZooKeeper
     case Update(path, recursive, notifOpt) => {
-      Try(zoo.getData(path, false, null)) match {
+      Try(zoo.getData(path)) match {
         case Success(data) => self ! Add(path, data, recursive, notifOpt)
         case Failure(error: KeeperException.NoNodeException) => self ! SetWatcher(path, notifOpt)
         case Failure(error) => logger.debug(s"Could not get data of $path while updating", error)
@@ -123,11 +123,7 @@ private class CacheUpdaterActor(cache: Map[String, ZkNodeElement], zoo: ZooKeepe
   def setWatchers(path: String): Unit = {
     if (!watchedNodes.contains(path)) {
       Try {
-        val stat = Option(zoo.exists(path, true))
-        if (stat.nonEmpty) {
-          zoo.getChildren(path, true)
-          zoo.getData(path, true, stat.get)
-        }
+        zoo.setWatchers(path)
       } match {
         case Success(_) => watchedNodes.add(path)
         case Failure(error: NoNodeException) => self ! Remove(path, None)

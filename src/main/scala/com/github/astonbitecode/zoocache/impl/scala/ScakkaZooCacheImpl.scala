@@ -3,7 +3,6 @@ package com.github.astonbitecode.zoocache.impl.scala
 import scala.collection.mutable.HashMap
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration._
-import org.apache.zookeeper.ZooKeeper
 import akka.actor.actorRef2Scala
 import akka.pattern.gracefulStop
 import com.github.astonbitecode.zoocache.messages._
@@ -11,8 +10,9 @@ import com.github.astonbitecode.zoocache.CacheUpdaterActor
 import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 import com.github.astonbitecode.zoocache.Internals.ActorCreatable
+import com.github.astonbitecode.zoocache.zk.ZookeeperManager
 
-case class ScakkaZooCacheImpl(zoo: ZooKeeper, actorCreatable: ActorCreatable) extends ScakkaZooCache {
+case class ScakkaZooCacheImpl(zoo: ZookeeperManager, actorCreatable: ActorCreatable) extends ScakkaZooCache {
   // The cache
   private[astonbitecode] val cache = HashMap.empty[String, CacheUpdaterActor.ZkNodeElement]
   // Create only one handler.
