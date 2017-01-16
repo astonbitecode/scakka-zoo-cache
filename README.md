@@ -1,10 +1,10 @@
 # scakka-zoo-cache ![Build Status](https://travis-ci.org/astonbitecode/scakka-zoo-cache.svg?branch=master)
 
-A library that caches [ZooKeeper](http://zookeeper.apache.org/) data.
+A library that caches [ZooKeeper](http://zookeeper.apache.org/) data. The cached data is used __only__ for read operations, namely get Data and get Children. It __does not__ support write operations, these should be done via the ZooKeeper Client. 
 
-It is written in [Scala](http://www.scala-lang.org/) and the cache synchronization is done using [Akka](http://www.akka.io).
+The library is intended to be used by applications that heavily use ZooKeeper for read operations and can cope with _eventual consistency_.
 
-The library caches data using a [ZooKeeper](http://zookeeper.apache.org/doc/r3.4.9/api/index.html) instance, by specifying watches in the `znode`s that should be cached.
+It is written in [Scala](http://www.scala-lang.org/) and the cache synchronization is internally done using [Akka](http://www.akka.io), and it provides APIs for _Scala_, _Java_ and _Akka_.
 
 The paths to be cached are defined using the library's API. Subtrees and children of the defined paths to cache are _automatically cached_ as well.
 
@@ -13,16 +13,17 @@ Whenever something changes in the ZooKeeper, watches are activated and the cache
 ## Features
 
 * Built on top of the [ZooKeeper API](http://zookeeper.apache.org/doc/r3.4.9/api/)
+* Offering the required abstractions in order to use other ZooKeper frameworks (like [Apache Curator](http://curator.apache.org/))
 * Cache the whole ZooKeeper tree, or just parts of it
 * Data synchronization using Akka Actors
-* Access with Scala, Akka, or Java APIs
+* Access with _Scala_, _Akka_, or _Java_ APIs
 * Deployed in the Maven Central:
 
 ```xml
 <dependency>
   <groupId>com.github.astonbitecode</groupId>
   <artifactId>scakka-zoo-cache</artifactId>
-  <version>0.1.0</version>
+  <version>0.2.0</version>
 </dependency>
 ```
 
@@ -192,5 +193,32 @@ In case of failure of any of the Akka API messages, the sender will receive a `C
 
 This message contains the failure details along with any correlation object the respective request contained.
 
+## Java API Usage
 
+### Initialize the cache
 
+```java
+import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory;
+import com.github.astonbitecode.zoocache.api.java.JScakkaZooCache;
+
+JScakkaZooCache zooCache = ScakkaZooCacheFactory.java(zk);
+
+```
+
+### Add a Path to the cache
+
+Simply call the addPathToCache:
+
+```java
+import java.util.concurrent.Future;
+
+Future<BoxedUnit> f = zooCache.addPathToCache("/a/path");
+f.get();
+
+```
+### Use the cache
+
+```java
+List<String> children = zooCache.getChildren("/a/path");
+byte[] data = zooCache.getData("/a/path");
+```

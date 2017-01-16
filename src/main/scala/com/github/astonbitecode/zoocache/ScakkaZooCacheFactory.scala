@@ -105,7 +105,7 @@ object ScakkaZooCacheFactory {
    * @param zookeeperManager A ZooKeeperManager implementation
    * @return A ScakkaZooCache instance
    */
-  def java(zookeeperManager: ZookeeperManager): JScakkaZooCache = {
+  def javaWithZookeeperManager(zookeeperManager: ZookeeperManager): JScakkaZooCache = {
     val scakkaCache = ScakkaZooCacheFactory.scala(zookeeperManager)
     new ScakkaZooCacheJavaImpl(scakkaCache)
   }
