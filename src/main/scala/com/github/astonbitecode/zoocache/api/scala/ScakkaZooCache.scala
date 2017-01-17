@@ -5,6 +5,7 @@ import org.apache.zookeeper.ZooKeeper
 import akka.actor.ActorSystem
 import com.github.astonbitecode.zoocache.impl.scala.ScakkaZooCacheImpl
 import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
+import com.github.astonbitecode.zoocache.api.dtos.CacheResult
 
 trait ScakkaZooCache {
   /**
@@ -18,6 +19,13 @@ trait ScakkaZooCache {
    */
   @throws(classOf[NotCachedException])
   def getData(path: String): Array[Byte]
+
+  /**
+   * Retrieves the data and children of the paths that match the specified regex.
+   * @param: regex The Regular expression to be used in order to find paths in the cache.
+   * @returns A list of CacheResult instances.
+   */
+  def find(regex: String): List[CacheResult]
 
   /**
    * Adds a path to the cache. The cache will be updating all the subtree under the defined path.

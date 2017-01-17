@@ -4,6 +4,7 @@ package com.github.astonbitecode.zoocache.api
  * The package contains the message objects that form the Akka API
  */
 package object akka {
+	import com.github.astonbitecode.zoocache.api.dtos.CacheResult
 
   /**
    * Gets the children of the node of the given path
@@ -36,6 +37,21 @@ package object akka {
    * This parameter will be the same with the one used in the GetData message
    */
   case class GetDataResponse(path: String, data: Array[Byte], correlation: Option[Any])
+
+  /**
+   * Retrieves the data and children of the paths that match the specified regex.
+   * @param: regex The Regular expression to be used in order to find paths in the cache.
+   * @param correlation Optional parameter to help the sender correlating the request with the response
+   */
+  case class Find(regex: String, correlation: Option[Any] = None)
+
+  /**
+   * The response message for the Find
+   * @param cacheResults The results that are found.
+   * @param correlation Optional parameter to help the sender correlating the request with the response.
+   * This parameter will be the same with the one used in the GetData message
+   */
+  case class FindResponse(cacheResults: List[CacheResult], correlation: Option[Any])
 
   /**
    * Adds a path to the cache. The cache will be updating all the subtree under the defined path.

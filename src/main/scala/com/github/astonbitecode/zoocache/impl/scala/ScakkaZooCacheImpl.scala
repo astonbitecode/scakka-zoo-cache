@@ -11,6 +11,8 @@ import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 import com.github.astonbitecode.zoocache.Internals.ActorCreatable
 import com.github.astonbitecode.zoocache.zk.ZookeeperManager
+import com.github.astonbitecode.zoocache.api.dtos.CacheResult
+import scala.util.matching.Regex
 
 case class ScakkaZooCacheImpl(zoo: ZookeeperManager, actorCreatable: ActorCreatable) extends ScakkaZooCache {
   // The cache
@@ -27,6 +29,20 @@ case class ScakkaZooCacheImpl(zoo: ZookeeperManager, actorCreatable: ActorCreata
   @throws(classOf[NotCachedException])
   override def getData(path: String): Array[Byte] = {
     cache.get(path).fold(throw new NotCachedException(s"Path '$path' is not found in the cache while getting data"))(_.data)
+  }
+
+  override def find(regex: String): List[CacheResult] = {
+    val pattern = new Regex(regex)
+    cache.filter { kv =>
+      {
+        pattern.findFirstIn(kv._1).nonEmpty
+      }
+    }.map { kv =>
+      {
+        val (path, CacheUpdaterActor.ZkNodeElement(data, children)) = kv
+        CacheResult(path, data, children.toList)
+      }
+    }.toList
   }
 
   override def addPathToCache(path: String): Future[Unit] = {

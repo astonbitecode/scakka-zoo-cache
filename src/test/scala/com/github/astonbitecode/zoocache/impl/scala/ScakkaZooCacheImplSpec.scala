@@ -116,4 +116,36 @@ class ScakkaZooCacheImplSpec extends mutable.Specification with Mockito {
       instance.getChildren("/") must throwA[NotCachedException]
     }
   }
+
+  "Find should " >> {
+    "return results" >> {
+      val instance = new ScakkaZooCacheImpl(zkManager, ActorSystem("ScakkaZooCache12"))
+      instance.cache.put("/a/path/1", ZkNodeElement("v1".getBytes, Set("1", "2")))
+      instance.cache.put("/a/path/2", ZkNodeElement("v2".getBytes, Set("3", "4")))
+      instance.cache.put("/a/otherPath/1", ZkNodeElement("votherPath".getBytes, Set("5", "6")))
+      instance.cache.put("/a/path/3", ZkNodeElement("v3".getBytes, Set("7", "8")))
+
+      val results = instance.find("(^\\/a\\/path\\/[\\w]*)")
+      results must haveSize(3)
+
+      val resultTuples = results.map { res =>
+        {
+          (res.path, new String(res.data), res.children)
+        }
+      }
+      resultTuples must contain(("/a/path/1", "v1", List("1", "2")))
+      resultTuples must contain(("/a/path/2", "v2", List("3", "4")))
+      resultTuples must contain(("/a/path/3", "v3", List("7", "8")))
+    }
+
+    "not return results" >> {
+      val instance = new ScakkaZooCacheImpl(zkManager, ActorSystem("ScakkaZooCache12"))
+      instance.cache.put("/a/path/1", ZkNodeElement("v1".getBytes))
+      instance.cache.put("/a/path/2", ZkNodeElement("v2".getBytes))
+      instance.cache.put("/a/path/3", ZkNodeElement("v3".getBytes))
+
+      val results = instance.find("(^\\/anohter\\/path\\/[\\w]*)")
+      results must beEmpty
+    }
+  }
 }

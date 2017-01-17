@@ -55,6 +55,12 @@ class ScakkaZooCacheActor(zooCache: ScakkaZooCache) extends Actor {
         case Failure(error) => replyTo ! CacheFailure(error, correlation)
       }
     }
+    case Find(regex, correlation) => {
+      Try(zooCache.find(regex)) match {
+        case Success(responseList) => sender ! FindResponse(responseList, correlation)
+        case Failure(error) => sender ! CacheFailure(error, correlation)
+      }
+    }
     case other: Any => logger.debug(s"${this.getClass} cannot handle $other of type (${other.getClass})")
   }
 }

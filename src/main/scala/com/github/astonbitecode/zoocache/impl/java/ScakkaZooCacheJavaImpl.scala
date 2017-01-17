@@ -8,6 +8,7 @@ import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import scala.collection.JavaConversions._
 import java.lang.String
 import java.util.List
+import com.github.astonbitecode.zoocache.api.dtos.CacheResult
 
 class ScakkaZooCacheJavaImpl(scakkaCache: ScakkaZooCache) extends JScakkaZooCache {
 
@@ -16,6 +17,8 @@ class ScakkaZooCacheJavaImpl(scakkaCache: ScakkaZooCache) extends JScakkaZooCach
 
   @throws(classOf[NotCachedException])
   def getData(path: String): Array[Byte] = scakkaCache.getData(path)
+
+  def find(regex: String): List[CacheResult] = scakkaCache.find(regex)
 
   def addPathToCache(path: String): java.util.concurrent.Future[Unit] = scakkaCache.addPathToCache(path)
 

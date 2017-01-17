@@ -11,6 +11,7 @@ import akka.actor.ActorSystem
 import akka.testkit.TestProbe
 import scala.concurrent.duration._
 import scala.concurrent.Future
+import com.github.astonbitecode.zoocache.api.dtos.CacheResult
 
 @RunWith(classOf[JUnitRunner])
 class ScakkaZooCacheActorSpec extends mutable.Specification with Mockito {
@@ -171,6 +172,24 @@ class ScakkaZooCacheActorSpec extends mutable.Specification with Mockito {
       response must beAnInstanceOf[StopResponse]
       val stopResponse = response.asInstanceOf[StopResponse]
       stopResponse.correlation must beEqualTo(Some("1112"))
+    }
+  }
+
+  "Find should " >> {
+    "return results" >> {
+      val zooCache = mock[ScakkaZooCache]
+      val data = "This is the data"
+      val cr = CacheResult("/a/path", "data".getBytes, List("1", "2"))
+      zooCache.find(any).returns(List(cr))
+      implicit val actorSystem = ActorSystem()
+      val actor = actorSystem.actorOf(ScakkaZooCacheActor.props(zooCache))
+      val probe = TestProbe()
+      probe.send(actor, Find("/a/path", Some("333333")))
+      val response = probe.receiveOne(10.seconds)
+      response must beAnInstanceOf[FindResponse]
+      val findResponse = response.asInstanceOf[FindResponse]
+      findResponse.correlation must beEqualTo(Some("333333"))
+      findResponse.cacheResults must haveSize(1)
     }
   }
 }
