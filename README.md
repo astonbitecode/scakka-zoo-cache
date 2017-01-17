@@ -102,8 +102,14 @@ Simply call the _addPathToCache_:
 ### Use the cache
 
 ```scala
+// Get the children of a path
 val children = zooCache.getChildren("/a/path")
+
+// Get the data of a path
 val data = zooCache.getData("/a/path")
+
+// Find all the paths that match a regex and return a List of results
+val cacheResults = zooCache.find("(^\\/a\\/path\\/[\\w]*)")
 ```
 
 ## Akka API Usage
@@ -137,8 +143,14 @@ zooCacheActorRef ! AddPathToCache("/a/path")
 ### Use the cache
 
 ```scala
+// Get the children of a path
 zooCacheActorRef ! GetChildren("/a/path")
+
+// Get the data of a path
 zooCacheActorRef ! GetData("/a/path")
+
+// Find all the paths that match a regex and return a List of results
+zooCacheActorRef ! Find("(^\\/a\\/path\\/[\\w]*)")
 ```
 ### Akka messaging
 
@@ -219,6 +231,14 @@ f.get();
 ### Use the cache
 
 ```java
+// Get the children of a path
 List<String> children = zooCache.getChildren("/a/path");
+
+// Get the data of a path
 byte[] data = zooCache.getData("/a/path");
+
+// Find all the paths that match a regex and return a List of results
+import com.github.astonbitecode.zoocache.api.dtos.JCacheResult;
+
+List<JCacheResult> cacheResults = zooCache.find("(^\\/a\\/path\\/[\\w]*)");
 ```
