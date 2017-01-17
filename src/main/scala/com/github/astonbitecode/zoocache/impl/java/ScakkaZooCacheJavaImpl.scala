@@ -8,7 +8,11 @@ import com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache
 import scala.collection.JavaConversions._
 import java.lang.String
 import java.util.List
-import com.github.astonbitecode.zoocache.api.dtos.CacheResult
+import com.github.astonbitecode.zoocache.api.dtos.{ JCacheResult, CacheResult }
+import com.github.astonbitecode.zoocache.api.dtos.JCacheResult
+import com.github.astonbitecode.zoocache.api.dtos.JCacheResult
+import com.github.astonbitecode.zoocache.api.dtos.JCacheResult
+import com.github.astonbitecode.zoocache.api.dtos.JCacheResult
 
 class ScakkaZooCacheJavaImpl(scakkaCache: ScakkaZooCache) extends JScakkaZooCache {
 
@@ -18,7 +22,7 @@ class ScakkaZooCacheJavaImpl(scakkaCache: ScakkaZooCache) extends JScakkaZooCach
   @throws(classOf[NotCachedException])
   def getData(path: String): Array[Byte] = scakkaCache.getData(path)
 
-  def find(regex: String): List[CacheResult] = scakkaCache.find(regex)
+  def find(regex: String): List[JCacheResult] = scakkaCache.find(regex)
 
   def addPathToCache(path: String): java.util.concurrent.Future[Unit] = scakkaCache.addPathToCache(path)
 
@@ -38,6 +42,14 @@ class ScakkaZooCacheJavaImpl(scakkaCache: ScakkaZooCache) extends JScakkaZooCach
       override def cancel(mayInterruptIfRunning: Boolean): Boolean = throw new UnsupportedOperationException
 
       override def isDone: Boolean = x.isCompleted
+    }
+  }
+
+  implicit private def scalaCacheResultListToJavaCacheResultList(scalaRes: scala.collection.immutable.List[CacheResult]): List[JCacheResult] = {
+    scalaRes.map { s =>
+      {
+        new JCacheResult(s.path, s.data, s.children)
+      }
     }
   }
 }

@@ -4,7 +4,7 @@ import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 import java.util.concurrent.Future
 import java.util.List
 import java.lang.String
-import com.github.astonbitecode.zoocache.api.dtos.CacheResult
+import com.github.astonbitecode.zoocache.api.dtos.JCacheResult
 
 trait JScakkaZooCache {
   /**
@@ -24,7 +24,7 @@ trait JScakkaZooCache {
    * @param: regex The Regular expression to be used in order to find paths in the cache.
    * @returns A list of CacheResult instances.
    */
-  def find(regex: String): List[CacheResult]
+  def find(regex: String): List[JCacheResult]
 
   /**
    * Adds a path to the cache. The cache will be updating all the subtree under the defined path.

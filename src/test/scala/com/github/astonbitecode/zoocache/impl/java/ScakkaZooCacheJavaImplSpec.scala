@@ -9,6 +9,7 @@ import com.github.astonbitecode.zoocache.api.ScakkaException.NotCachedException
 import com.github.astonbitecode.zoocache.CacheUpdaterActor.ZkNodeElement
 import com.github.astonbitecode.zoocache.Internals.implicits._
 import com.github.astonbitecode.zoocache.api.dtos.CacheResult
+import com.github.astonbitecode.zoocache.api.dtos.JCacheResult
 
 @RunWith(classOf[JUnitRunner])
 class ScakkaZooCacheJavaImplSpec extends mutable.Specification with Mockito {
@@ -102,7 +103,7 @@ class ScakkaZooCacheJavaImplSpec extends mutable.Specification with Mockito {
       scalaCache.find(any).returns(List(cr))
       val instance = new ScakkaZooCacheJavaImpl(scalaCache)
 
-      val results = instance.find("(^\\/a\\/path\\/[\\w]*)")
+      val results: java.util.List[JCacheResult] = instance.find("(^\\/a\\/path\\/[\\w]*)")
       results must haveSize(1)
     }
   }
