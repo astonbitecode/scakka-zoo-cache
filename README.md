@@ -27,6 +27,17 @@ Whenever something changes in the ZooKeeper, watches are activated and the cache
 </dependency>
 ```
 
+Latest snapshot:
+
+```xml
+<dependency>
+  <groupId>com.github.astonbitecode</groupId>
+  <artifactId>scakka-zoo-cache</artifactId>
+  <version>0.2.1-SNAPSHOT</version>
+</dependency>
+```
+
+
 ## API Usage
 
 The APIs of the ScakkaZooCache are offered for _Scala_, _Akka_ and _Java_, depending on how the cache is created (which `com.github.astonbitecode.zoocache.ScakkaZooCacheFactory` method will be used for the instantiation of the cache). 
