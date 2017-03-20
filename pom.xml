@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.astonbitecode</groupId>
 	<artifactId>scakka-zoo-cache</artifactId>
-	<version>0.2.1-SNAPSHOT</version>
+	<version>0.2.1</version>
 	<name>scakka-zoo-cache</name>
 	<description>A cache for Zookeeper, implemented in Scala and Akka</description>
 	<url>https://github.com/astonbitecode/scakka-zoo-cache</url>

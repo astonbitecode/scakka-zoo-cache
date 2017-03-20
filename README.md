@@ -23,9 +23,20 @@ Whenever something changes in the ZooKeeper, watches are activated and the cache
 <dependency>
   <groupId>com.github.astonbitecode</groupId>
   <artifactId>scakka-zoo-cache</artifactId>
-  <version>0.2.0</version>
+  <version>0.2.1</version>
 </dependency>
 ```
+
+Latest snapshot:
+
+```xml
+<dependency>
+  <groupId>com.github.astonbitecode</groupId>
+  <artifactId>scakka-zoo-cache</artifactId>
+  <version>0.2.2-SNAPSHOT</version>
+</dependency>
+```
+
 
 ## API Usage
 
