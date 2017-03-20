@@ -4,7 +4,7 @@ A library that caches [ZooKeeper](http://zookeeper.apache.org/) data. The cached
 
 The library is intended to be used by applications that heavily use ZooKeeper for read operations and can cope with _eventual consistency_.
 
-It is written in [Scala](http://www.scala-lang.org/) and the cache synchronization is internally done using [Akka](http://www.akka.io), and it provides APIs for _Scala_, _Java_ and _Akka_.
+It is written in [Scala](http://www.scala-lang.org/), the cache synchronization is internally done using [Akka](http://www.akka.io) and it provides APIs for _Scala_, _Java_ and _Akka_,  all of them easily accessible via a [factory object](https://astonbitecode.github.io/scakka-zoo-cache/#com.github.astonbitecode.zoocache.ScakkaZooCacheFactory$).
 
 The paths to be cached are defined using the library's API. Subtrees and children of the defined paths to cache are _automatically cached_ as well.
 
@@ -16,7 +16,7 @@ Whenever something changes in the ZooKeeper, watches are activated and the cache
 * Offering the required abstractions in order to use other ZooKeper frameworks (like [Apache Curator](http://curator.apache.org/))
 * Cache the whole ZooKeeper tree, or just parts of it
 * Data synchronization using Akka Actors
-* Access with _Scala_, _Akka_, or _Java_ APIs
+* Access with [_Scala_](https://astonbitecode.github.io/scakka-zoo-cache/#com.github.astonbitecode.zoocache.api.scala.ScakkaZooCache), [_Akka_](https://astonbitecode.github.io/scakka-zoo-cache/#com.github.astonbitecode.zoocache.api.akka.package), or [_Java_](https://astonbitecode.github.io/scakka-zoo-cache/#com.github.astonbitecode.zoocache.api.java.JScakkaZooCache) APIs.
 * Deployed in the Maven Central:
 
 ```xml
@@ -168,7 +168,7 @@ zooCacheActorRef ! Find("(^\\/a\\/path\\/[\\w]*)")
 The available messages for the Akka API exist in the `com.github.astonbitecode.zoocache.api.akka` package.
 
 Each one of the available Akka messages has its corresponding response. 
-This message is sent by the Actor that handles the Akka API as a response to a request. (You can consult the Scaladocs for more details).
+This message is sent by the Actor that handles the Akka API as a response to a request. (You can consult the [Scaladocs](https://astonbitecode.github.io/scakka-zoo-cache/) for more details).
 
 For example, when sending a `GetChildren` message, a response of `GetChildrenResponse` will be received:
 
