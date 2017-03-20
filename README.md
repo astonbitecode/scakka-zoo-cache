@@ -1,4 +1,4 @@
-# scakka-zoo-cache ![Build Status](https://travis-ci.org/astonbitecode/scakka-zoo-cache.svg?branch=master)
+# scakka-zoo-cache ![Build Status](https://travis-ci.org/astonbitecode/scakka-zoo-cache.svg?branch=master) [![Maven Central](https://img.shields.io/badge/Maven%20Central-0.2.0-blue.svg)](http://search.maven.org/#search%7Cga%7C1%7Cg%3A%22com.github.astonbitecode%22%20AND%20a%3A%22scakka-zoo-cache%22)
 
 A library that caches [ZooKeeper](http://zookeeper.apache.org/) data. The cached data is used __only__ for read operations, namely get Data and get Children. It __does not__ support write operations, these should be done via the ZooKeeper Client. 
 

@@ -1,6 +1,5 @@
 package com.github.astonbitecode.zoocache.impl.scala
 
-import scala.collection.mutable.HashMap
 import scala.concurrent.{ Future, Promise }
 import scala.concurrent.duration._
 import akka.actor.actorRef2Scala
@@ -13,10 +12,11 @@ import com.github.astonbitecode.zoocache.Internals.ActorCreatable
 import com.github.astonbitecode.zoocache.zk.ZookeeperManager
 import com.github.astonbitecode.zoocache.api.dtos.CacheResult
 import scala.util.matching.Regex
+import scala.collection.concurrent.TrieMap
 
 case class ScakkaZooCacheImpl(zoo: ZookeeperManager, actorCreatable: ActorCreatable) extends ScakkaZooCache {
   // The cache
-  private[astonbitecode] val cache = HashMap.empty[String, CacheUpdaterActor.ZkNodeElement]
+  private[astonbitecode] val cache = TrieMap.empty[String, CacheUpdaterActor.ZkNodeElement]
   // Create only one handler.
   // WARNING: The handler is the only entity that mutates the cache.
   private val updater = actorCreatable.actorOf(CacheUpdaterActor.props(cache, zoo))
