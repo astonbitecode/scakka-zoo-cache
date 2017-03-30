@@ -69,14 +69,14 @@ ___Note:___ _Writing to the ZooKeeper is not done via the ScakkaZooCache. It sho
 
 Assuming that _zk_ is a `ZooKeeper` class instance, a `ScakkaZooCache` can be created like following:
 
-####1.  Using simple initialization
+#### 1.  Using simple initialization
 
 ```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
 
 val zooCache = ScakkaZooCacheFactory.scala(zk)
 ```
-####2. Defining an ActorSystem
+#### 2. Defining an ActorSystem
 
 ```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
@@ -85,7 +85,7 @@ val actorSystem = ActorSystem("myActorSystem")
 val zooCache = ScakkaZooCacheFactory.scala(zk, actorSystem)
 ```
 
-####3. Creating from inside an Akka Actor, using the ActorContext
+#### 3. Creating from inside an Akka Actor, using the ActorContext
 
 ```scala
 import com.github.astonbitecode.zoocache.ScakkaZooCacheFactory
